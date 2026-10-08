@@ -30,7 +30,7 @@ package com.interview.blind75.backtracking;
  *   - 1 <= word.length <= 15
  *
  * ============================================================
- * APPROACH: DFS Backtracking with In-Place Visited Marking
+ * APPROACH 1: DFS Backtracking with In-Place Visited Marking
  * ============================================================
  * 1. For each cell matching word[0], start a DFS.
  * 2. In DFS: mark cell visited by replacing with '#', recurse on 4 neighbors.
@@ -42,12 +42,21 @@ package com.interview.blind75.backtracking;
  * In-place '#' marking avoids a separate visited[][] array.
  * Restoring the cell on backtrack allows other paths to use it.
  *
- * TIME  : O(m * n * 4^L) — L = word length, 4 directions per step
- * SPACE : O(L) — recursion depth
+ * TIME  : O(m * n * 3^L) — L = word length; after the first step only 3 directions are new
+ *         (often quoted as the looser O(m * n * 4^L))
+ * SPACE : O(L) — recursion depth (temporarily mutates the board, restored before returning)
+ *
+ * ALTERNATIVES: a separate visited[][] array instead of '#' marking — same time,
+ * O(m * n) extra space, but leaves the input untouched. Useful pruning: return false early
+ * if the board lacks enough of some letter, and search the reversed word when its last letter
+ * is rarer than its first. No materially better asymptotic alternative.
+ *
+ * WHICH TO USE: DFS + in-place marking; mention the pruning tricks as optimisations.
  * ============================================================
  */
 public class WordSearch {
 
+    /** Approach 1 — DFS backtracking, in-place marking. TIME O(m * n * 3^L) · SPACE O(L) (mutates board temporarily) */
     public boolean exist(char[][] board, String word) {
         int m = board.length, n = board[0].length;
         for (int r = 0; r < m; r++) {

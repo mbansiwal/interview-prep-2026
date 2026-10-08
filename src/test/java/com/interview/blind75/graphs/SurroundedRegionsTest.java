@@ -1,36 +1,73 @@
 package com.interview.blind75.graphs;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SurroundedRegionsTest {
 
-    private final SurroundedRegions solution = new SurroundedRegions();
+    private static final SurroundedRegions solution = new SurroundedRegions();
 
-    @Test
-    void capturesInnerO() {
+    static Stream<Named<Consumer<char[][]>>> approaches() {
+        return Stream.of(
+                Named.of("dfs", solution::solve),
+                Named.of("bfs", solution::solveBfs));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void capturesInnerO(Consumer<char[][]> approach) {
         char[][] board = {
             {'X','X','X','X'},
             {'X','O','O','X'},
             {'X','X','O','X'},
             {'X','O','X','X'}
         };
-        solution.solve(board);
-        assertEquals('X', board[1][1]);
-        assertEquals('O', board[3][1]); // border-connected
+        approach.accept(board);
+        assertArrayEquals(new char[][]{
+            {'X','X','X','X'},
+            {'X','X','X','X'},
+            {'X','X','X','X'},
+            {'X','O','X','X'}
+        }, board);
     }
 
-    @Test
-    void allX() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void allX(Consumer<char[][]> approach) {
         char[][] board = {{'X','X'},{'X','X'}};
-        solution.solve(board);
-        assertEquals('X', board[0][0]);
+        approach.accept(board);
+        assertArrayEquals(new char[][]{{'X','X'},{'X','X'}}, board);
     }
 
-    @Test
-    void borderO() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void borderO(Consumer<char[][]> approach) {
         char[][] board = {{'O'}};
-        solution.solve(board);
-        assertEquals('O', board[0][0]);
+        approach.accept(board);
+        assertArrayEquals(new char[][]{{'O'}}, board);
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void innerRegionConnectedToBorderSurvives(Consumer<char[][]> approach) {
+        char[][] board = {
+            {'X','O','X','X'},
+            {'X','O','O','X'},
+            {'X','X','X','X'},
+            {'X','X','O','X'}
+        };
+        approach.accept(board);
+        assertArrayEquals(new char[][]{
+            {'X','O','X','X'},
+            {'X','O','O','X'},
+            {'X','X','X','X'},
+            {'X','X','O','X'}
+        }, board);
     }
 }

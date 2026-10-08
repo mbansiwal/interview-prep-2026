@@ -30,7 +30,7 @@ import java.util.Queue;
  *   - m, n >= 1, grid[i][j] in {0, 1, 2}
  *
  * ============================================================
- * APPROACH: Multi-Source BFS from All Rotten Oranges
+ * APPROACH 1: Multi-Source BFS from All Rotten Oranges
  * ============================================================
  * 1. Enqueue all initially rotten oranges (layer 0).
  * 2. Count fresh oranges.
@@ -42,13 +42,20 @@ import java.util.Queue;
  * computing the minimum time naturally via BFS levels.
  *
  * TIME  : O(m * n)
- * SPACE : O(m * n) — queue size
+ * SPACE : O(m * n) — queue size (mutates the grid; copy it first if that matters)
+ *
+ * ALTERNATIVES: a separate BFS from each rotten orange is O((m * n)²); DFS that records
+ * the minute each cell rots (re-visiting when a faster time is found) is correct but can
+ * revisit cells many times. No materially better alternative to multi-source BFS.
+ *
+ * WHICH TO USE: multi-source BFS — level = minute.
  * ============================================================
  */
 public class RottingOranges {
 
     private static final int[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};
 
+    /** Approach 1 — Multi-source BFS. TIME O(m * n) · SPACE O(m * n) (mutates grid) */
     public int orangesRotting(int[][] grid) {
         int m = grid.length, n = grid[0].length;
         Queue<int[]> queue = new LinkedList<>();

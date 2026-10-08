@@ -21,7 +21,7 @@ package com.interview.blind75.math;
  *   - -2^31 <= x <= 2^31 - 1
  *
  * ============================================================
- * APPROACH: Pop and Push Digits, Check Overflow Before Multiplying
+ * APPROACH 1: Pop and push digits, check overflow first   → reverse
  * ============================================================
  * 1. Pop the last digit: digit = x % 10, x /= 10.
  * 2. Before pushing: check if result would overflow 32-bit int.
@@ -33,12 +33,17 @@ package com.interview.blind75.math;
  * Overflow if result > MAX/10, or result == MAX/10 and digit > 7 (MAX ends in 7);
  * symmetric for negatives with MIN/10 and digit < -8 (MIN ends in 8).
  *
- * TIME  : O(log x) — number of digits
+ * TIME  : O(log |x|) — number of digits
  * SPACE : O(1)
+ *
+ * ALTERNATIVES: accumulating in a long (then range-checking) or reversing the
+ * string are also O(log |x|), but both use 64-bit/extra storage the problem rules
+ * out — no materially better alternative.
  * ============================================================
  */
 public class ReverseInteger {
 
+    /** Approach 1 — Pop/push digits with a pre-multiply overflow check. TIME O(log |x|) · SPACE O(1) */
     public int reverse(int x) {
         int result = 0;
         while (x != 0) {

@@ -1,5 +1,10 @@
 package com.interview.blind75.heap;
 
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.PriorityQueue;
+
 /**
  * ============================================================
  * PROBLEM : Task Scheduler
@@ -24,21 +29,33 @@ package com.interview.blind75.heap;
  *   - 1 <= tasks.length <= 10^4
  *
  * ============================================================
- * APPROACH: Math Formula with Max Frequency
+ * APPROACHES  (T = number of tasks)
  * ============================================================
- * 1. Count frequency of each task. Find maxFreq and how many tasks have maxFreq.
- * 2. result = max(tasks.length, (maxFreq-1)*(n+1) + countMaxFreq)
+ * APPROACH 1: Math formula on the most frequent task
+ * 1. Count each task; find maxFreq and how many tasks share it (countMaxFreq).
+ * 2. answer = max(T, (maxFreq - 1) * (n + 1) + countMaxFreq).
+ * Intuition: the most frequent task forms (maxFreq - 1) "frames" of length n + 1 plus a
+ * final partial frame; other tasks fill the gaps, and if they overflow there's no idle at all.
+ * TIME  : O(T)
+ * SPACE : O(1) — 26 counters
  *
- * WHY THIS WORKS:
- * (maxFreq-1) full "cycles" of length (n+1), plus a final row of countMaxFreq.
- * If tasks fill all gaps, total = tasks.length (no idle needed).
+ * APPROACH 2: Max-heap + cooldown queue (simulation)
+ * 1. Max-heap of remaining counts; queue of (count, readyAtTime) for tasks cooling down.
+ * 2. Each step run the task with the most remaining work; if it still has work, queue it
+ *    until time + n + 1.
+ * 3. If nothing is runnable, jump the clock straight to the next ready time (that gap is idle).
+ * Intuition: always run the task with the most work left, so it never becomes the bottleneck.
+ * TIME  : O(T log 26) = O(T) (idle stretches are skipped in one jump)
+ * SPACE : O(26) = O(1)
  *
- * TIME  : O(n) — n = number of tasks
- * SPACE : O(1) — at most 26 frequencies
+ * WHICH TO USE:
+ * The formula is optimal and short, but you must justify it. The heap simulation is
+ * easier to explain, extends to "print the schedule", and is what many interviewers expect first.
  * ============================================================
  */
 public class TaskScheduler {
 
+    /** Approach 1 — Math formula. TIME O(T) · SPACE O(1) */
     public int leastInterval(char[] tasks, int n) {
         int[] freq = new int[26];
         for (char task : tasks) freq[task - 'A']++;
@@ -51,5 +68,27 @@ public class TaskScheduler {
 
         int minIntervals = (maxFreq - 1) * (n + 1) + countMaxFreq;
         return Math.max(minIntervals, tasks.length);
+    }
+
+    /** Approach 2 — Max-heap + cooldown queue. TIME O(T log 26) · SPACE O(1) */
+    public int leastIntervalHeap(char[] tasks, int n) {
+        int[] freq = new int[26];
+        for (char task : tasks) freq[task - 'A']++;
+
+        PriorityQueue<Integer> ready = new PriorityQueue<>(Collections.reverseOrder());
+        for (int f : freq) if (f > 0) ready.offer(f);
+
+        Deque<int[]> coolingDown = new ArrayDeque<>();   // {remainingCount, readyAtTime}
+        int time = 0;
+        while (!ready.isEmpty() || !coolingDown.isEmpty()) {
+            if (ready.isEmpty()) time = coolingDown.peek()[1] - 1;   // idle until the next task is ready
+            time++;
+            while (!coolingDown.isEmpty() && coolingDown.peek()[1] <= time) {
+                ready.offer(coolingDown.poll()[0]);
+            }
+            int remaining = ready.poll() - 1;
+            if (remaining > 0) coolingDown.offer(new int[]{remaining, time + n + 1});
+        }
+        return time;
     }
 }

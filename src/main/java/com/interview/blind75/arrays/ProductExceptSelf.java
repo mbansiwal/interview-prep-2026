@@ -25,23 +25,29 @@ package com.interview.blind75.arrays;
  *   - No division operation allowed
  *
  * ============================================================
- * APPROACH: Prefix and Suffix Products
+ * APPROACHES
  * ============================================================
- * 1. Initialize result array where result[i] = prefix product of all elements before i.
- * 2. Pass left-to-right: result[i] = result[i-1] * nums[i-1].
- * 3. Maintain a running suffix product, pass right-to-left.
- * 4. Multiply each result[i] by the suffix product, then update suffix.
+ * APPROACH 1: Prefix in the output, running suffix  (primary)
+ *   1. Left-to-right: result[i] = product of everything before i.
+ *   2. Right-to-left: multiply result[i] by a running product of everything after i.
+ *   Intuition: answer[i] = (product left of i) × (product right of i).
+ *   TIME O(n) · SPACE O(1) extra (output array not counted)
  *
- * WHY THIS WORKS:
- * Product except self = (product of all elements left of i) * (product of all elements right of i).
- * Two passes compute both without needing extra arrays.
+ * APPROACH 2: Separate prefix and suffix arrays
+ *   1. prefix[i] = product of nums[0..i-1]; suffix[i] = product of nums[i+1..n-1].
+ *   2. result[i] = prefix[i] × suffix[i].
+ *   Intuition: the same idea written out explicitly — easiest to explain first.
+ *   TIME O(n) · SPACE O(n) for the two helper arrays
  *
- * TIME  : O(n)
- * SPACE : O(1) — output array doesn't count as extra space
+ * WHICH TO USE:
+ *   Explain #2 first (clearest), then fold the suffix array into a variable to
+ *   reach #1 — that's the follow-up interviewers ask for. Division is
+ *   disallowed, and would break on zeros anyway.
  * ============================================================
  */
 public class ProductExceptSelf {
 
+    /** Approach 1 — prefix in output + running suffix. TIME O(n) · SPACE O(1) extra */
     public int[] productExceptSelf(int[] nums) {
         int n = nums.length;
         int[] result = new int[n];
@@ -57,6 +63,21 @@ public class ProductExceptSelf {
             suffixProduct *= nums[i];
         }
 
+        return result;
+    }
+
+    /** Approach 2 — explicit prefix and suffix arrays. TIME O(n) · SPACE O(n) */
+    public int[] productExceptSelfPrefixSuffixArrays(int[] nums) {
+        int n = nums.length;
+        int[] prefix = new int[n];
+        int[] suffix = new int[n];
+        prefix[0] = 1;
+        for (int i = 1; i < n; i++) prefix[i] = prefix[i - 1] * nums[i - 1];
+        suffix[n - 1] = 1;
+        for (int i = n - 2; i >= 0; i--) suffix[i] = suffix[i + 1] * nums[i + 1];
+
+        int[] result = new int[n];
+        for (int i = 0; i < n; i++) result[i] = prefix[i] * suffix[i];
         return result;
     }
 }

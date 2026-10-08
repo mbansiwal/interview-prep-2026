@@ -29,7 +29,7 @@ import java.util.List;
  *   - All elements are distinct and positive
  *
  * ============================================================
- * APPROACH: Backtracking with Reuse
+ * APPROACH 1: Backtracking with Reuse
  * ============================================================
  * 1. Sort candidates so we can stop early.
  * 2. Loop i from `start`; try adding candidates[i] and recurse with remaining - candidates[i].
@@ -43,11 +43,19 @@ import java.util.List;
  *   order, so [2,3] is generated but [3,2] never is — no duplicates.
  *
  * TIME  : O(n^(t/m)) — n candidates, t target, m minimum candidate value
- * SPACE : O(t/m) — max recursion depth
+ * SPACE : O(t/m) — max recursion depth (excluding output)
+ *
+ * ALTERNATIVES: brute force over all multisets is far worse. A DP over targets
+ * (dp[t] = list of combinations summing to t) has the same exponential output and
+ * uses much more memory — no materially better alternative. Use dp only to COUNT
+ * combinations (that's Coin Change II, O(n * t)).
+ *
+ * WHICH TO USE: backtracking, with sort + break pruning.
  * ============================================================
  */
 public class CombinationSum {
 
+    /** Approach 1 — Backtracking with reuse + pruning. TIME O(n^(t/m)) · SPACE O(t/m) (sorts input) */
     public List<List<Integer>> combinationSum(int[] candidates, int target) {
         Arrays.sort(candidates);
         List<List<Integer>> result = new ArrayList<>();

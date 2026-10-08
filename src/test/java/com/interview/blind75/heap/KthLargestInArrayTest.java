@@ -1,32 +1,53 @@
 package com.interview.blind75.heap;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class KthLargestInArrayTest {
 
-    private final KthLargestInArray solution = new KthLargestInArray();
+    private static final KthLargestInArray solution = new KthLargestInArray();
 
-    @Test
-    void k2() {
-        assertEquals(5, solution.findKthLargest(new int[]{3, 2, 1, 5, 6, 4}, 2));
+    static Stream<Named<BiFunction<int[], Integer, Integer>>> approaches() {
+        return Stream.of(
+                Named.of("min-heap", solution::findKthLargest),
+                Named.of("quickselect", solution::findKthLargestQuickselect),
+                Named.of("counting sort", solution::findKthLargestCounting));
     }
 
-    @Test
-    void k4WithDuplicates() {
-        assertEquals(4, solution.findKthLargest(new int[]{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void k2(BiFunction<int[], Integer, Integer> approach) {
+        assertEquals(5, approach.apply(new int[]{3, 2, 1, 5, 6, 4}, 2));
     }
 
-    @Test
-    void k1() {
-        assertEquals(6, solution.findKthLargest(new int[]{1, 2, 3, 4, 5, 6}, 1));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void k4WithDuplicates(BiFunction<int[], Integer, Integer> approach) {
+        assertEquals(4, approach.apply(new int[]{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4));
     }
 
-    @Test
-    void quickselectMatchesHeap() {
-        assertEquals(5, solution.findKthLargestQuickselect(new int[]{3, 2, 1, 5, 6, 4}, 2));
-        assertEquals(4, solution.findKthLargestQuickselect(new int[]{3, 2, 3, 1, 2, 4, 5, 5, 6}, 4));
-        assertEquals(1, solution.findKthLargestQuickselect(new int[]{1}, 1));
-        assertEquals(-1, solution.findKthLargestQuickselect(new int[]{-1, -1, -1}, 2));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void k1(BiFunction<int[], Integer, Integer> approach) {
+        assertEquals(6, approach.apply(new int[]{1, 2, 3, 4, 5, 6}, 1));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void singleElement(BiFunction<int[], Integer, Integer> approach) {
+        assertEquals(1, approach.apply(new int[]{1}, 1));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void allNegativeDuplicates(BiFunction<int[], Integer, Integer> approach) {
+        assertEquals(-1, approach.apply(new int[]{-1, -1, -1}, 2));
+        assertEquals(-10000, approach.apply(new int[]{10000, -10000, 0}, 3));
     }
 }

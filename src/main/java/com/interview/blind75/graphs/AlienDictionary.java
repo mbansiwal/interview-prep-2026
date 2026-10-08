@@ -38,55 +38,48 @@ import java.util.Set;
  *   - 1 <= words[i].length <= 100
  *
  * ============================================================
- * APPROACH: Build letter graph from adjacent words, then Kahn's BFS
+ * APPROACHES  (C = total characters, U = unique letters ≤ 26)
  * ============================================================
- * 1. Every letter that appears is a node with in-degree 0.
- * 2. Compare each pair of ADJACENT words. The first position where they
- *    differ gives one rule: first[j] comes before second[j] (an edge).
- *    Only the first difference matters — later letters tell us nothing.
- * 3. If no difference is found and the first word is longer
- *    ("abc" before "ab"), the input is invalid → return "".
- * 4. Kahn's BFS: start with all in-degree-0 letters, pop one, append it,
- *    decrement its neighbours' in-degree, push any that drop to 0.
- * 5. If we output fewer letters than exist, there was a cycle → return "".
+ * Shared step — build the letter graph:
+ * 1. Every letter that appears is a node.
+ * 2. For each pair of ADJACENT words, the first position where they differ gives one rule:
+ *    first[j] comes before second[j]. Only the first difference matters.
+ * 3. If no difference is found and the first word is longer ("abc" before "ab") → invalid → "".
+ * Then the alphabet is any topological order of the graph (a cycle → "").
  *
- * WHY THIS WORKS:
- * The sorted list gives "a before b" rules; a valid alphabet is exactly a
- * topological order of those rules. Kahn's algorithm emits a letter only
- * once every letter that must precede it has been emitted.
+ * APPROACH 1: Kahn's algorithm (BFS on in-degrees)
+ * 1. Queue every letter with in-degree 0; pop one, append it, decrement its successors,
+ *    queue any that drop to 0.
+ * 2. If fewer letters were emitted than exist, there was a cycle → "".
+ * Intuition: emit a letter only once every letter that must precede it is out.
+ * TIME  : O(C) — building the graph dominates; the sort itself is O(U + edges)
+ * SPACE : O(U + min(U², N)) — O(1) for a fixed 26-letter alphabet
  *
- * TIME  : O(C) — C = total characters across all words
- * SPACE : O(U + min(U², N)) — U unique letters (≤ 26), N words; i.e. O(1) for a fixed alphabet
+ * APPROACH 2: DFS post-order (3-colour)
+ * 1. DFS each letter along before → after edges; a grey (on-stack) letter again means a cycle → "".
+ * 2. Append a letter after all its successors are finished, then REVERSE the list.
+ * Intuition: post-order lists a letter after everything that must come after it,
+ * so reversing gives "before" letters first.
+ * TIME  : O(C)
+ * SPACE : O(U + min(U², N)) + O(U) recursion depth
+ *
+ * WHICH TO USE:
+ * Kahn's is the usual answer — cycle detection is just a count check and it's iterative.
+ * DFS is equally optimal; remember the final reverse. The real traps are the prefix rule
+ * and "only the first differing letter counts".
  * ============================================================
  */
 public class AlienDictionary {
 
+    /** Approach 1 — Letter graph + Kahn's BFS. TIME O(C) · SPACE O(U + min(U², N)) */
     public String alienOrder(List<String> words) {
-        Map<Character, Set<Character>> graph = new HashMap<>();
+        Map<Character, Set<Character>> graph = buildGraph(words);
+        if (graph == null) return "";
+
         Map<Character, Integer> inDegree = new HashMap<>();
-        for (String word : words) {
-            for (char c : word.toCharArray()) {
-                graph.putIfAbsent(c, new HashSet<>());
-                inDegree.putIfAbsent(c, 0);
-            }
-        }
-
-        for (int i = 0; i + 1 < words.size(); i++) {
-            String first = words.get(i);
-            String second = words.get(i + 1);
-            int len = Math.min(first.length(), second.length());
-            int j = 0;
-            while (j < len && first.charAt(j) == second.charAt(j)) j++;
-
-            if (j == len) {
-                if (first.length() > second.length()) return "";
-                continue;
-            }
-            char before = first.charAt(j);
-            char after = second.charAt(j);
-            if (graph.get(before).add(after)) {
-                inDegree.merge(after, 1, Integer::sum);
-            }
+        for (char c : graph.keySet()) inDegree.putIfAbsent(c, 0);
+        for (Set<Character> successors : graph.values()) {
+            for (char next : successors) inDegree.merge(next, 1, Integer::sum);
         }
 
         Queue<Character> queue = new ArrayDeque<>();
@@ -103,6 +96,54 @@ public class AlienDictionary {
             }
         }
 
-        return order.length() == inDegree.size() ? order.toString() : "";
+        return order.length() == graph.size() ? order.toString() : "";
+    }
+
+    /** Approach 2 — Letter graph + DFS post-order. TIME O(C) · SPACE O(U + min(U², N)) */
+    public String alienOrderDfs(List<String> words) {
+        Map<Character, Set<Character>> graph = buildGraph(words);
+        if (graph == null) return "";
+
+        Map<Character, Integer> state = new HashMap<>();   // absent = unvisited, 1 = on stack, 2 = done
+        StringBuilder postOrder = new StringBuilder();
+        for (char c : graph.keySet()) {
+            if (!dfs(c, graph, state, postOrder)) return "";
+        }
+        return postOrder.reverse().toString();
+    }
+
+    private boolean dfs(char c, Map<Character, Set<Character>> graph,
+                        Map<Character, Integer> state, StringBuilder postOrder) {
+        Integer s = state.get(c);
+        if (s != null) return s == 2;   // 1 means we're back on the current path → cycle
+        state.put(c, 1);
+        for (char next : graph.get(c)) {
+            if (!dfs(next, graph, state, postOrder)) return false;
+        }
+        state.put(c, 2);
+        postOrder.append(c);
+        return true;
+    }
+
+    // Returns letter → set of letters that must come after it, or null if the input is invalid.
+    private Map<Character, Set<Character>> buildGraph(List<String> words) {
+        Map<Character, Set<Character>> graph = new HashMap<>();
+        for (String word : words) {
+            for (char c : word.toCharArray()) graph.putIfAbsent(c, new HashSet<>());
+        }
+        for (int i = 0; i + 1 < words.size(); i++) {
+            String first = words.get(i);
+            String second = words.get(i + 1);
+            int len = Math.min(first.length(), second.length());
+            int j = 0;
+            while (j < len && first.charAt(j) == second.charAt(j)) j++;
+
+            if (j == len) {
+                if (first.length() > second.length()) return null;
+                continue;
+            }
+            graph.get(first.charAt(j)).add(second.charAt(j));
+        }
+        return graph;
     }
 }

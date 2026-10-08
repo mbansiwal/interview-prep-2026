@@ -24,27 +24,33 @@ package com.interview.blind75.linkedlist;
  *   - 1 <= k <= number of nodes <= 5000
  *
  * ============================================================
- * APPROACH: Iterative Group Reversal with a Dummy Node
+ * APPROACHES
  * ============================================================
- * 1. A dummy node sits before head; groupPrev = the node just before the current group.
- * 2. Walk k steps from groupPrev to find the group's last node (kth). If fewer
- *    than k nodes remain, stop — the tail stays in its original order.
- * 3. Reverse the k nodes in place, pointing the group's first node at groupNext
- *    (the node after the group).
- * 4. Link groupPrev to the new group head (kth). The old first node is now the
- *    group's tail, so it becomes groupPrev for the next round.
- *
- * WHY THIS WORKS:
- * Each group is an ordinary in-place list reversal; the only extra work is
- * stitching it back between groupPrev and groupNext. A loop instead of
- * recursion meets LeetCode's follow-up of O(1) extra memory.
- *
- * TIME  : O(n) — each node is visited twice (find kth, then reverse)
+ * APPROACH 1: Iterative Group Reversal with a Dummy Node
+ * 1. groupPrev = the node just before the current group (starts at a dummy).
+ * 2. Walk k steps to find the group's last node (kth); if fewer than k remain, stop.
+ * 3. Reverse the k nodes in place, pointing the group's first node at groupNext.
+ * 4. Link groupPrev to kth; the old first node becomes groupPrev for the next round.
+ * Intuition: each group is an ordinary list reversal, stitched between groupPrev and groupNext.
+ * TIME  : O(n) — each node visited twice (find kth, then reverse)
  * SPACE : O(1)
+ *
+ * APPROACH 2: Recursive
+ * 1. Check that k nodes exist from head; if not, return head unchanged.
+ * 2. Reverse those k nodes; the old head is now the group's tail.
+ * 3. Set oldHead.next = reverseKGroup(the rest), and return the new group head.
+ * Intuition: "reverse the first group, then trust recursion for the rest".
+ * TIME  : O(n)
+ * SPACE : O(n/k) — one recursion frame per group
+ *
+ * WHICH TO USE:
+ * The recursive version is shorter and easier to write first. LeetCode's follow-up
+ * asks for O(1) extra memory, which is the iterative Approach 1.
  * ============================================================
  */
 public class ReverseNodesInKGroup {
 
+    /** Approach 1 — Iterative group reversal. TIME O(n) · SPACE O(1) · mutates input */
     public ListNode reverseKGroup(ListNode head, int k) {
         ListNode dummy = new ListNode(0, head);
         ListNode groupPrev = dummy;
@@ -68,6 +74,25 @@ public class ReverseNodesInKGroup {
             groupPrev = oldFirst;
         }
         return dummy.next;
+    }
+
+    /** Approach 2 — Recursive, one frame per group. TIME O(n) · SPACE O(n/k) recursion stack · mutates input */
+    public ListNode reverseKGroupRecursive(ListNode head, int k) {
+        ListNode probe = head;
+        for (int i = 0; i < k; i++) {
+            if (probe == null) return head;
+            probe = probe.next;
+        }
+
+        ListNode prev = null, curr = head;
+        for (int i = 0; i < k; i++) {
+            ListNode next = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = next;
+        }
+        head.next = reverseKGroupRecursive(curr, k);
+        return prev;
     }
 
     private ListNode getKth(ListNode node, int k) {

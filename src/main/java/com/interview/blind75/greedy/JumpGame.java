@@ -20,23 +20,34 @@ package com.interview.blind75.greedy;
  *   - 1 <= nums.length <= 10^4
  *
  * ============================================================
- * APPROACH: Greedy — Track Maximum Reachable Index
+ * APPROACHES
  * ============================================================
- * Maintain `maxReach`: the farthest index we can reach so far.
- * At each index i:
- * - If i > maxReach, we cannot reach this index → return false.
- * - Update maxReach = max(maxReach, i + nums[i]).
+ * DP "can I reach the end from i?" checking every jump length is O(n²) time,
+ * O(n) space; both greedy scans below beat it.
  *
- * WHY THIS WORKS:
- * If at any point we're trying to visit an index beyond our reach, we're stuck.
- * Otherwise we greedily extend the reachable range.
+ * APPROACH 1: Forward — track the farthest reachable index → canJump
+ *   1. maxReach = 0.
+ *   2. For each i: if i > maxReach we're stuck → false; else extend
+ *      maxReach = max(maxReach, i + nums[i]).
+ *   Intuition: the reachable indices always form a prefix [0, maxReach].
+ *   TIME  : O(n)    SPACE : O(1)
  *
- * TIME  : O(n)
- * SPACE : O(1)
+ * APPROACH 2: Backward — shift the goal toward the start   → canJumpBackward
+ *   1. goal = last index.
+ *   2. Scan i from right to left: if i + nums[i] >= goal, index i can reach the
+ *      goal, so it becomes the new goal.
+ *   3. Answer: goal == 0.
+ *   Intuition: "can I reach the end?" ⇔ "can I reach any index that reaches the end?"
+ *   TIME  : O(n)    SPACE : O(1)
+ *
+ * WHICH TO USE:
+ * Either. The forward scan generalises straight into Jump Game II (BFS levels);
+ * the backward scan is often the easiest to prove correct out loud.
  * ============================================================
  */
 public class JumpGame {
 
+    /** Approach 1 — Forward max-reach scan. TIME O(n) · SPACE O(1) */
     public boolean canJump(int[] nums) {
         int maxReach = 0;
         for (int i = 0; i < nums.length; i++) {
@@ -44,5 +55,14 @@ public class JumpGame {
             maxReach = Math.max(maxReach, i + nums[i]);
         }
         return true;
+    }
+
+    /** Approach 2 — Backward goal shifting. TIME O(n) · SPACE O(1) */
+    public boolean canJumpBackward(int[] nums) {
+        int goal = nums.length - 1;
+        for (int i = nums.length - 2; i >= 0; i--) {
+            if (i + nums[i] >= goal) goal = i;
+        }
+        return goal == 0;
     }
 }

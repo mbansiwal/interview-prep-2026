@@ -25,23 +25,29 @@ package com.interview.blind75.slidingwindow;
  *   - 0 <= prices[i] <= 10^4
  *
  * ============================================================
- * APPROACH: Single Pass with Running Minimum
+ * APPROACHES
  * ============================================================
- * 1. Track the minimum price seen so far.
- * 2. For each price, compute profit = price - minPrice.
- * 3. Update maxProfit if this profit is larger.
- * 4. Update minPrice if current price is lower.
+ * APPROACH 1: One pass with a running minimum  (primary)
+ *   1. Track the cheapest price seen so far.
+ *   2. At each day, profit = price − cheapest; keep the best.
+ *   Intuition: the best sell day pairs with the cheapest earlier buy day.
+ *   TIME O(n) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * At each day, the best we can do is sell at today's price after buying
- * at the cheapest price seen before today. One pass handles both.
+ * APPROACH 2: Kadane's algorithm on daily price changes
+ *   1. diff[i] = prices[i] − prices[i−1].
+ *   2. The best profit is the maximum subarray sum of diff (or 0).
+ *   Intuition: buying on day a and selling on day b earns the sum of the daily
+ *   changes between them — so it's Maximum Subarray in disguise.
+ *   TIME O(n) · SPACE O(1)
  *
- * TIME  : O(n)
- * SPACE : O(1)
+ * WHICH TO USE:
+ *   #1 is the clearest. #2 is worth mentioning: it shows you see the link to
+ *   Maximum Subarray (LC 53). Brute force over all pairs is O(n²).
  * ============================================================
  */
 public class BestTimeToBuyAndSellStock {
 
+    /** Approach 1 — running minimum. TIME O(n) · SPACE O(1) */
     public int maxProfit(int[] prices) {
         int minPrice = Integer.MAX_VALUE;
         int maxProfit = 0;
@@ -50,5 +56,15 @@ public class BestTimeToBuyAndSellStock {
             minPrice = Math.min(minPrice, price);
         }
         return maxProfit;
+    }
+
+    /** Approach 2 — Kadane on daily changes. TIME O(n) · SPACE O(1) */
+    public int maxProfitKadane(int[] prices) {
+        int best = 0, current = 0;
+        for (int i = 1; i < prices.length; i++) {
+            current = Math.max(0, current + prices[i] - prices[i - 1]);
+            best = Math.max(best, current);
+        }
+        return best;
     }
 }

@@ -18,26 +18,36 @@ package com.interview.blind75.math;
  *
  * CONSTRAINTS:
  *   - m, n >= 1
- *   - Must be in-place with O(1) extra space
+ *   - Follow-up: in-place with O(1) extra space
  *
  * ============================================================
- * APPROACH: Use First Row and First Column as Markers
+ * APPROACHES
  * ============================================================
- * 1. Check if first row / first column has any zero (separate flags).
- * 2. Use matrix[0][j] and matrix[i][0] to mark which rows/columns need zeroing.
- * 3. Zero cells based on markers (inner matrix only).
- * 4. Zero first row/column based on flags.
+ * Zeroing as you scan is wrong — new zeros would wipe extra rows/columns — so
+ * every approach records first and writes second. Copying the whole matrix is
+ * O(m · n) extra space.
  *
- * WHY THIS WORKS:
- * The first row and column become our O(1) space "visited" markers,
- * avoiding a separate boolean array.
+ * APPROACH 1: First row and column as markers (O(1) space) → setZeroes
+ *   1. Remember separately whether row 0 / column 0 contain a zero.
+ *   2. For every inner zero at (i, j), mark matrix[i][0] = 0 and matrix[0][j] = 0.
+ *   3. Zero inner cells whose row or column is marked.
+ *   4. Finally zero row 0 / column 0 if their flags are set.
+ *   Intuition: the first row/column already exist, so reuse them as the marker arrays.
+ *   TIME  : O(m · n)    SPACE : O(1)
  *
- * TIME  : O(m * n)
- * SPACE : O(1)
+ * APPROACH 2: Separate row and column flag arrays          → setZeroesWithFlags
+ *   1. One pass: rowZero[i] = true and colZero[j] = true for each zero.
+ *   2. Second pass: zero any cell whose row or column is flagged.
+ *   Intuition: the simplest correct version; Approach 1 just folds these arrays into the matrix.
+ *   TIME  : O(m · n)    SPACE : O(m + n)
+ *
+ * WHICH TO USE:
+ * Explain Approach 2 first, then answer the O(1)-space follow-up with Approach 1.
  * ============================================================
  */
 public class SetMatrixZeroes {
 
+    /** Approach 1 — First row/column as in-place markers. TIME O(m·n) · SPACE O(1) */
     public void setZeroes(int[][] matrix) {
         int m = matrix.length, n = matrix[0].length;
         boolean firstRowZero = false, firstColZero = false;
@@ -55,5 +65,18 @@ public class SetMatrixZeroes {
 
         if (firstRowZero) for (int j = 0; j < n; j++) matrix[0][j] = 0;
         if (firstColZero) for (int i = 0; i < m; i++) matrix[i][0] = 0;
+    }
+
+    /** Approach 2 — Row and column flag arrays. TIME O(m·n) · SPACE O(m + n) */
+    public void setZeroesWithFlags(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        boolean[] rowZero = new boolean[m], colZero = new boolean[n];
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < n; j++)
+                if (matrix[i][j] == 0) { rowZero[i] = true; colZero[j] = true; }
+
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < n; j++)
+                if (rowZero[i] || colZero[j]) matrix[i][j] = 0;
     }
 }

@@ -1,5 +1,7 @@
 package com.interview.blind75.graphs;
 
+import java.util.Deque;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,18 +28,26 @@ import java.util.Map;
  *   - No repeated edges or self-loops
  *
  * ============================================================
- * APPROACH: DFS + HashMap (old node → new node)
+ * APPROACHES  (V nodes, E edges)
  * ============================================================
- * 1. Use a HashMap to map each original node to its clone.
- * 2. DFS: if node is already cloned, return the clone.
- * 3. Otherwise, create a new node, add it to the map, then DFS all neighbors.
+ * APPROACH 1: DFS + HashMap (original → clone)
+ * 1. If a node is already cloned, return its clone (this also breaks cycles).
+ * 2. Otherwise create the clone, register it, then clone each neighbour recursively.
+ * Intuition: the map is both the "visited" set and the clone registry.
+ * TIME  : O(V + E)
+ * SPACE : O(V) map + O(V) recursion depth (a long path graph)
  *
- * WHY THIS WORKS:
- * The HashMap serves as both the visited set and the clone registry,
- * preventing infinite loops in cyclic graphs.
+ * APPROACH 2: BFS + HashMap
+ * 1. Clone the start node and enqueue the original.
+ * 2. For each dequeued node, for each neighbour: clone it on first sight and enqueue it,
+ *    then wire clone(node) → clone(neighbour).
+ * Intuition: same registry, iterative traversal — no recursion depth limit.
+ * TIME  : O(V + E)
+ * SPACE : O(V) map + O(V) queue
  *
- * TIME  : O(V + E) — visit every node and edge once
- * SPACE : O(V) — HashMap + recursion stack
+ * WHICH TO USE:
+ * Both are optimal. DFS is shortest; BFS is safer for very deep graphs.
+ * The must-say point: register a clone BEFORE visiting neighbours, or cycles loop forever.
  * ============================================================
  */
 public class CloneGraph {
@@ -51,6 +61,7 @@ public class CloneGraph {
         }
     }
 
+    /** Approach 1 — DFS + HashMap. TIME O(V + E) · SPACE O(V) */
     public Node cloneGraph(Node node) {
         return clone(node, new HashMap<>());
     }
@@ -65,5 +76,25 @@ public class CloneGraph {
             copy.neighbors.add(clone(neighbor, cloneMap));
         }
         return copy;
+    }
+
+    /** Approach 2 — BFS + HashMap. TIME O(V + E) · SPACE O(V) */
+    public Node cloneGraphBfs(Node node) {
+        if (node == null) return null;
+        Map<Node, Node> cloneMap = new HashMap<>();
+        cloneMap.put(node, new Node(node.val));
+        Deque<Node> queue = new ArrayDeque<>();
+        queue.offer(node);
+        while (!queue.isEmpty()) {
+            Node current = queue.poll();
+            for (Node neighbor : current.neighbors) {
+                if (!cloneMap.containsKey(neighbor)) {
+                    cloneMap.put(neighbor, new Node(neighbor.val));
+                    queue.offer(neighbor);
+                }
+                cloneMap.get(current).neighbors.add(cloneMap.get(neighbor));
+            }
+        }
+        return cloneMap.get(node);
     }
 }

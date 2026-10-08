@@ -24,7 +24,7 @@ import java.util.List;
  *   - 1 <= intervals.length <= 10^4
  *
  * ============================================================
- * APPROACH: Sort + Linear Merge
+ * APPROACH 1: Sort + Linear Merge
  * ============================================================
  * 1. Sort intervals by start time.
  * 2. Maintain a `current` interval. For each next interval:
@@ -36,12 +36,19 @@ import java.util.List;
  * After sorting, overlapping intervals are adjacent. Greedy extension
  * handles all chains of overlapping intervals.
  *
- * TIME  : O(n log n)
- * SPACE : O(n)
+ * TIME  : O(n log n) — the sort dominates; the merge pass is O(n)
+ * SPACE : O(n) for the output, plus the sort's own space (sorts and edits the input in place)
+ *
+ * ALTERNATIVES: comparing every pair is O(n²). If coordinates are small integers, a
+ * counting/sweep array over the range gives O(n + R) time and O(R) space — rarely worth it.
+ * No materially better general alternative: any comparison-based solution needs O(n log n).
+ *
+ * WHICH TO USE: sort + linear merge.
  * ============================================================
  */
 public class MergeIntervals {
 
+    /** Approach 1 — Sort + linear merge. TIME O(n log n) · SPACE O(n) (sorts/mutates input) */
     public int[][] merge(int[][] intervals) {
         Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
         List<int[]> result = new ArrayList<>();

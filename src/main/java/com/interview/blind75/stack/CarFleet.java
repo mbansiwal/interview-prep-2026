@@ -1,6 +1,8 @@
 package com.interview.blind75.stack;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 
 /**
  * ============================================================
@@ -27,27 +29,37 @@ import java.util.Arrays;
  *   - 1 <= n <= 10^5
  *
  * ============================================================
- * APPROACH: Sort by Position + Track Slowest Arrival Time
+ * APPROACHES
  * ============================================================
- * 1. Sort cars by position descending (closest to target first).
- * 2. For each car, compute time = (target - position) / speed.
- * 3. Keep slowestAhead = arrival time of the fleet directly in front.
- *    If this car's time > slowestAhead, it can never catch up: new fleet,
- *    and it becomes the new slowestAhead.
- * 4. Otherwise it catches up and merges into the fleet ahead (no count change).
+ * APPROACH 1: Sort by position, track the slowest arrival ahead  (primary)
+ *   1. Sort cars by position, closest to the target first.
+ *   2. time = (target − position) / speed.
+ *   3. A car slower to arrive than every car ahead starts a new fleet;
+ *      otherwise it catches up and joins the fleet in front.
+ *   Intuition: a car can never pass the one ahead, so only arrival times matter.
+ *   TIME O(n log n) · SPACE O(n) for the sorted pairs
  *
- * WHY THIS WORKS:
- * A car can't pass the car ahead, so if it would arrive sooner it gets
- * blocked and arrives with that fleet. Only a car that is slower than
- * everything in front starts a new fleet. A stack would only ever need
- * its top element, so a single variable replaces it.
+ * APPROACH 2: Same order, explicit monotonic stack of fleet times
+ *   1. Process cars from closest to farthest; push each arrival time.
+ *   2. If the new time ≤ the stack top, it merges — pop it straight back off.
+ *   3. The stack size is the number of fleets.
+ *   Intuition: the stack holds one arrival time per fleet (the leader's).
+ *   TIME O(n log n) · SPACE O(n)
  *
- * TIME  : O(n log n) — sorting
- * SPACE : O(n) — the sorted cars array
+ * APPROACH 3: Counting sort by position (positions are distinct integers < target)
+ *   1. arrival[position] = time for each car, in an array of size target.
+ *   2. Walk positions from target−1 down to 0, applying the rule from #1.
+ *   Intuition: the bounded integer positions let us replace the sort with indexing.
+ *   TIME O(n + target) · SPACE O(target)
+ *
+ * WHICH TO USE:
+ *   #1 (or #2, if you want to show the stack pattern) is expected. #3 is a good
+ *   follow-up when target is small relative to n log n.
  * ============================================================
  */
 public class CarFleet {
 
+    /** Approach 1 — sort + slowest-ahead counter. TIME O(n log n) · SPACE O(n) */
     public int carFleet(int target, int[] position, int[] speed) {
         int n = position.length;
         int[][] cars = new int[n][2];
@@ -62,6 +74,42 @@ public class CarFleet {
             if (time > slowestAhead) {
                 fleets++;
                 slowestAhead = time;
+            }
+        }
+        return fleets;
+    }
+
+    /** Approach 2 — sort + explicit stack of fleet arrival times. TIME O(n log n) · SPACE O(n) */
+    public int carFleetStack(int target, int[] position, int[] speed) {
+        int n = position.length;
+        Integer[] order = new Integer[n];
+        for (int i = 0; i < n; i++) order[i] = i;
+        Arrays.sort(order, (a, b) -> Integer.compare(position[b], position[a]));
+
+        Deque<Double> fleets = new ArrayDeque<>();
+        for (int i : order) {
+            double time = (double) (target - position[i]) / speed[i];
+            fleets.push(time);
+            if (fleets.size() >= 2) {
+                double mine = fleets.pop();
+                if (mine > fleets.peek()) fleets.push(mine); // slower: a new fleet
+            }
+        }
+        return fleets.size();
+    }
+
+    /** Approach 3 — counting sort by position. TIME O(n + target) · SPACE O(target) */
+    public int carFleetCountingSort(int target, int[] position, int[] speed) {
+        double[] arrival = new double[target]; // 0 means "no car here"
+        for (int i = 0; i < position.length; i++) {
+            arrival[position[i]] = (double) (target - position[i]) / speed[i];
+        }
+        int fleets = 0;
+        double slowestAhead = 0;
+        for (int p = target - 1; p >= 0; p--) {
+            if (arrival[p] > slowestAhead) {
+                fleets++;
+                slowestAhead = arrival[p];
             }
         }
         return fleets;

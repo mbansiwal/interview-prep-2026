@@ -1,6 +1,7 @@
 package com.interview.blind75.heap;
 
 import java.util.PriorityQueue;
+import java.util.Random;
 
 /**
  * ============================================================
@@ -23,28 +24,41 @@ import java.util.PriorityQueue;
  *
  * CONSTRAINTS:
  *   - 1 <= k <= nums.length <= 10^5
+ *   - -10^4 <= nums[i] <= 10^4
  *
  * ============================================================
- * APPROACH: Min-Heap of Size k
+ * APPROACHES
  * ============================================================
- * 1. Process all elements through a min-heap of max size k.
- * 2. If heap grows beyond k, poll the smallest.
- * 3. After processing, heap.peek() is the kth largest.
- *
- * WHY THIS WORKS:
- * After processing all elements, the heap contains the k largest values.
- * The smallest among them (heap.peek()) is the kth largest overall.
- *
+ * APPROACH 1: Min-Heap of Size k
+ * 1. Push every element into a min-heap; if it grows beyond k, pop the smallest.
+ * 2. At the end the heap holds the k largest values; its top is the kth largest.
+ * Intuition: the heap top is the "entry bar" to the top-k club.
  * TIME  : O(n log k)
  * SPACE : O(k)
  *
- * FOLLOW-UP: Quickselect — O(n) average, O(n²) worst, O(1) extra space.
- * Partition like quicksort, but recurse only into the side containing the
- * target index (n - k). See findKthLargestQuickselect below.
+ * APPROACH 2: Quickselect (Hoare's selection)
+ * 1. The kth largest sits at index n - k of the sorted array.
+ * 2. Partition around a random pivot; continue only on the side containing n - k.
+ * Intuition: quicksort that throws away the half it doesn't need.
+ * TIME  : O(n) average, O(n²) worst case (random pivots make it very unlikely)
+ * SPACE : O(1) extra — but it reorders (mutates) the input
+ *
+ * APPROACH 3: Counting sort (bounded values)
+ * 1. Count occurrences of each value between min and max.
+ * 2. Walk the counts from the largest value down until k elements are passed.
+ * Intuition: when values live in a small range, counting beats comparing.
+ * TIME  : O(n + R), R = max - min + 1 (≤ 20,001 here)
+ * SPACE : O(R)
+ *
+ * WHICH TO USE:
+ * Interviewers usually expect heap first, then quickselect as the O(n) follow-up.
+ * Mention counting sort when the value range is small (as in LeetCode's constraints).
+ * Plain sorting is O(n log n) — fine as a baseline only.
  * ============================================================
  */
 public class KthLargestInArray {
 
+    /** Approach 1 — Min-heap of size k. TIME O(n log k) · SPACE O(k) */
     public int findKthLargest(int[] nums, int k) {
         PriorityQueue<Integer> minHeap = new PriorityQueue<>();
         for (int num : nums) {
@@ -54,10 +68,11 @@ public class KthLargestInArray {
         return minHeap.peek();
     }
 
+    /** Approach 2 — Quickselect. TIME O(n) avg, O(n²) worst · SPACE O(1) extra (mutates input) */
     public int findKthLargestQuickselect(int[] nums, int k) {
         int target = nums.length - k;
         int lo = 0, hi = nums.length - 1;
-        java.util.Random random = new java.util.Random(42);
+        Random random = new Random(42);
         while (lo < hi) {
             int pivotIndex = partition(nums, lo, hi, lo + random.nextInt(hi - lo + 1));
             if (pivotIndex == target) break;
@@ -65,6 +80,24 @@ public class KthLargestInArray {
             else hi = pivotIndex - 1;
         }
         return nums[target];
+    }
+
+    /** Approach 3 — Counting sort. TIME O(n + R) · SPACE O(R), R = max - min + 1 */
+    public int findKthLargestCounting(int[] nums, int k) {
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (int num : nums) {
+            min = Math.min(min, num);
+            max = Math.max(max, num);
+        }
+        int[] count = new int[max - min + 1];
+        for (int num : nums) count[num - min]++;
+
+        int remaining = k;
+        for (int i = count.length - 1; i >= 0; i--) {
+            remaining -= count[i];
+            if (remaining <= 0) return i + min;
+        }
+        throw new IllegalArgumentException("k is larger than nums.length");
     }
 
     // Lomuto partition: values smaller than the pivot end up on its left.

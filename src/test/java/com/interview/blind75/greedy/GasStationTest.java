@@ -15,4 +15,7 @@ class GasStationTest {
 
     @Test
     void single() { assertEquals(0, solution.canCompleteCircuit(new int[]{5}, new int[]{4})); }
+
+    @Test
+    void exactlyEnoughFuel() { assertEquals(1, solution.canCompleteCircuit(new int[]{1, 2}, new int[]{2, 1})); }
 }

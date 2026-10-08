@@ -21,7 +21,7 @@ package com.interview.blind75.greedy;
  *   - 0 <= nums[i] <= 1000
  *
  * ============================================================
- * APPROACH: Greedy — BFS-like Level Expansion
+ * APPROACH 1: Greedy BFS levels                            → jump
  * ============================================================
  * Think of each jump as a BFS level. Track:
  * - curEnd: the farthest index reachable in current jump.
@@ -34,10 +34,15 @@ package com.interview.blind75.greedy;
  *
  * TIME  : O(n)
  * SPACE : O(1)
+ *
+ * ALTERNATIVES: DP (dp[i] = min jumps to reach i, relaxing every jump from each
+ * index) is O(n · max jump) ≈ O(n²) time and O(n) space — the greedy level scan
+ * is the materially better answer, so it's the only one implemented.
  * ============================================================
  */
 public class JumpGameII {
 
+    /** Approach 1 — Greedy BFS levels. TIME O(n) · SPACE O(1) */
     public int jump(int[] nums) {
         int jumps = 0, curEnd = 0, farthest = 0;
         for (int i = 0; i < nums.length - 1; i++) {

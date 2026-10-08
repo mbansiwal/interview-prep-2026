@@ -1,5 +1,6 @@
 package com.interview.blind75.arrays;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,23 +30,30 @@ import java.util.Map;
  *   - Exactly one valid answer exists
  *
  * ============================================================
- * APPROACH: HashMap Complement Lookup
+ * APPROACHES
  * ============================================================
- * 1. Create a HashMap mapping each value to its index.
- * 2. For each number at index i, compute complement = target - num.
- * 3. If complement is already in the map, return [map.get(complement), i].
- * 4. Otherwise, store num -> i in the map and continue.
+ * APPROACH 1: One-pass HashMap complement lookup  (primary)
+ *   1. For each nums[i], complement = target − nums[i].
+ *   2. If the complement was seen before, return [its index, i].
+ *   3. Otherwise record nums[i] → i.
+ *   Intuition: trade memory for time — each lookup is O(1) instead of a scan.
+ *   TIME O(n) · SPACE O(n)
  *
- * WHY THIS WORKS:
- * We trade space for time: instead of scanning for the complement
- * with a nested loop (O(n²)), we do a O(1) map lookup per element.
+ * APPROACH 2: Sort indices by value + two pointers
+ *   1. Build an array of indices sorted by their values (original array untouched).
+ *   2. l = smallest, r = largest; move l right if the sum is too small, r left if too big.
+ *   Intuition: same idea as Two Sum II once the values are ordered.
+ *   TIME O(n log n) · SPACE O(n) for the index array
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   #1 is the expected answer. Mention #2 to show the sorted-array connection
+ *   (and that it needs the index array because sorting loses positions).
+ *   Brute force (check every pair) is O(n²) time, O(1) space.
  * ============================================================
  */
 public class TwoSum {
 
+    /** Approach 1 — one-pass HashMap. TIME O(n) · SPACE O(n) */
     public int[] twoSum(int[] nums, int target) {
         Map<Integer, Integer> indexByValue = new HashMap<>();
         for (int i = 0; i < nums.length; i++) {
@@ -54,6 +62,25 @@ public class TwoSum {
                 return new int[]{indexByValue.get(complement), i};
             }
             indexByValue.put(nums[i], i);
+        }
+        return new int[]{};
+    }
+
+    /** Approach 2 — sort indices by value, then two pointers. TIME O(n log n) · SPACE O(n) */
+    public int[] twoSumSortedPointers(int[] nums, int target) {
+        Integer[] idx = new Integer[nums.length];
+        for (int i = 0; i < nums.length; i++) idx[i] = i;
+        Arrays.sort(idx, (a, b) -> Integer.compare(nums[a], nums[b]));
+
+        int l = 0, r = nums.length - 1;
+        while (l < r) {
+            int sum = nums[idx[l]] + nums[idx[r]];
+            if (sum == target) {
+                int a = idx[l], b = idx[r];
+                return new int[]{Math.min(a, b), Math.max(a, b)};
+            }
+            if (sum < target) l++;
+            else r--;
         }
         return new int[]{};
     }

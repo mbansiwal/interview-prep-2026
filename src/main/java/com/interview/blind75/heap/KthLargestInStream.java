@@ -24,18 +24,21 @@ import java.util.PriorityQueue;
  *   - 0 <= nums.length <= 10^4
  *
  * ============================================================
- * APPROACH: Min-Heap of Size k
+ * APPROACHES
  * ============================================================
+ * APPROACH 1: Min-Heap of Size k
  * 1. Maintain a min-heap of size at most k.
  * 2. On add: offer to heap. If size > k, poll (remove smallest).
  * 3. The heap's top (min) is the kth largest overall.
- *
- * WHY THIS WORKS:
- * A min-heap of size k keeps the k largest elements seen so far.
- * The smallest of those k is the kth largest, which is heap.peek().
- *
- * TIME  : O(log k) per add
+ * Intuition: the heap keeps only the k largest values; the smallest of them is the answer.
+ * TIME  : O(n log k) constructor, O(log k) per add
  * SPACE : O(k)
+ *
+ * ALTERNATIVES: keep a sorted list (binary-search insert) → O(n) per add because
+ * of shifting; or re-sort on each add → O(n log n). No materially better alternative.
+ *
+ * WHICH TO USE:
+ * The min-heap of size k — it's the canonical "top k in a stream" pattern.
  * ============================================================
  */
 public class KthLargestInStream {
@@ -43,11 +46,13 @@ public class KthLargestInStream {
     private final PriorityQueue<Integer> minHeap = new PriorityQueue<>();
     private final int k;
 
+    /** Approach 1 — Min-heap of size k. TIME O(n log k) · SPACE O(k) */
     public KthLargestInStream(int k, int[] nums) {
         this.k = k;
         for (int num : nums) add(num);
     }
 
+    /** Approach 1 — Min-heap of size k. TIME O(log k) · SPACE O(1) extra */
     public int add(int val) {
         minHeap.offer(val);
         while (minHeap.size() > k) minHeap.poll();

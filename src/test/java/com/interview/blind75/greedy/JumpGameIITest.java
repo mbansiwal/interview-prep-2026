@@ -15,4 +15,7 @@ class JumpGameIITest {
 
     @Test
     void singleElement() { assertEquals(0, solution.jump(new int[]{0})); }
+
+    @Test
+    void oneStepAtATime() { assertEquals(4, solution.jump(new int[]{1, 1, 1, 1, 1})); }
 }

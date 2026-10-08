@@ -29,7 +29,7 @@ import java.util.List;
  *   - May contain duplicates; each used at most once
  *
  * ============================================================
- * APPROACH: Backtracking + Sort + Skip Duplicates at Same Level
+ * APPROACH 1: Backtracking + Sort + Skip Duplicates at Same Level
  * ============================================================
  * 1. Sort to group duplicates.
  * 2. At each level, skip candidates[i] if i > start and candidates[i] == candidates[i-1].
@@ -41,12 +41,18 @@ import java.util.List;
  * Same duplicate-skip trick as SubsetsII but we recurse i+1 (no reuse).
  * Sorting ensures all duplicates at a given position are tried exactly once.
  *
- * TIME  : O(2^n * n)
- * SPACE : O(n)
+ * TIME  : O(n * 2^n)
+ * SPACE : O(n) recursion depth (excluding output)
+ *
+ * ALTERNATIVES: generating all 2^n subsets and de-duplicating with a Set costs
+ * O(n * 2^n) time plus O(n * 2^n) memory — no materially better alternative.
+ *
+ * WHICH TO USE: backtracking with the "i > start" duplicate skip.
  * ============================================================
  */
 public class CombinationSumII {
 
+    /** Approach 1 — Backtracking + skip duplicates. TIME O(n * 2^n) · SPACE O(n) (sorts input) */
     public List<List<Integer>> combinationSum2(int[] candidates, int target) {
         Arrays.sort(candidates);
         List<List<Integer>> result = new ArrayList<>();

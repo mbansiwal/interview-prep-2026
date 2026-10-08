@@ -1,7 +1,9 @@
 package com.interview.blind75.slidingwindow;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * ============================================================
@@ -27,25 +29,36 @@ import java.util.Map;
  *   - s consists of English letters, digits, symbols, spaces
  *
  * ============================================================
- * APPROACH: Sliding Window with Last-Seen Index Map
+ * APPROACHES
  * ============================================================
- * 1. Maintain a HashMap of char → last seen index.
- * 2. Keep a left pointer marking the start of valid window.
- * 3. For each char at index i:
- *    - If it was seen at index >= left, move left to (lastSeen + 1).
- *    - Update char's last-seen index.
- *    - Update maxLength with window size (i - left + 1).
+ * APPROACH 1: Sliding window with last-seen index map  (primary)
+ *   1. Map each character to the last index where it appeared.
+ *   2. If the current char was seen inside the window, jump left past it.
+ *   3. Window length i − left + 1; track the max.
+ *   Intuition: jumping straight past the repeat means left never moves backward
+ *   and never steps one at a time.
+ *   TIME O(n) · SPACE O(min(n, alphabet))
  *
- * WHY THIS WORKS:
- * Jumping left past the last occurrence avoids slow character-by-character
- * shrinking. Window always holds distinct characters.
+ * APPROACH 2: Same idea with an int[128] array
+ *   1. lastIndex[c] = last position of c + 1 (0 means "not seen").
+ *   2. left = max(left, lastIndex[c]); update the best length.
+ *   Intuition: identical logic; an array is faster than a HashMap for ASCII input.
+ *   TIME O(n) · SPACE O(1) — 128 slots (ASCII per constraints)
  *
- * TIME  : O(n)
- * SPACE : O(min(n, alphabet))
+ * APPROACH 3: Sliding window with a HashSet, shrink one step at a time
+ *   1. Expand right; while s[right] is already in the set, remove s[left++].
+ *   2. Add s[right]; track the window size.
+ *   Intuition: the most direct "grow until invalid, shrink until valid" window.
+ *   TIME O(n) — each char added and removed at most once (≤ 2n steps) · SPACE O(min(n, alphabet))
+ *
+ * WHICH TO USE:
+ *   #3 is easiest to derive on a whiteboard; #1/#2 improve it by jumping left
+ *   directly. Say "#2 for ASCII, #1 for arbitrary Unicode".
  * ============================================================
  */
 public class LongestSubstringWithoutRepeating {
 
+    /** Approach 1 — last-seen index map, jump left. TIME O(n) · SPACE O(min(n, alphabet)) */
     public int lengthOfLongestSubstring(String s) {
         Map<Character, Integer> lastSeen = new HashMap<>();
         int maxLength = 0;
@@ -60,5 +73,31 @@ public class LongestSubstringWithoutRepeating {
             maxLength = Math.max(maxLength, i - left + 1);
         }
         return maxLength;
+    }
+
+    /** Approach 2 — int[128] last index (ASCII). TIME O(n) · SPACE O(1) */
+    public int lengthOfLongestSubstringArray(String s) {
+        int[] nextAllowedLeft = new int[128]; // last index of char + 1; 0 = unseen
+        int best = 0, left = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            left = Math.max(left, nextAllowedLeft[c]);
+            best = Math.max(best, i - left + 1);
+            nextAllowedLeft[c] = i + 1;
+        }
+        return best;
+    }
+
+    /** Approach 3 — HashSet window, shrink step by step. TIME O(n) (≤ 2n steps) · SPACE O(min(n, alphabet)) */
+    public int lengthOfLongestSubstringSet(String s) {
+        Set<Character> window = new HashSet<>();
+        int best = 0, left = 0;
+        for (int right = 0; right < s.length(); right++) {
+            char c = s.charAt(right);
+            while (window.contains(c)) window.remove(s.charAt(left++));
+            window.add(c);
+            best = Math.max(best, right - left + 1);
+        }
+        return best;
     }
 }

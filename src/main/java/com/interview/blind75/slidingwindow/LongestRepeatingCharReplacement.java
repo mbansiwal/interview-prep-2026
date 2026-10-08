@@ -25,30 +25,30 @@ package com.interview.blind75.slidingwindow;
  *   - 0 <= k <= s.length
  *
  * ============================================================
- * APPROACH: Sliding Window with Max Frequency Tracking
+ * APPROACHES
  * ============================================================
- * 1. Maintain frequency array of characters in current window.
- * 2. Track maxFreq = most frequent char in window.
- * 3. Window is valid if (windowSize - maxFreq) <= k.
- *    (Replacements needed = total - most_frequent_count)
- * 4. If invalid, shrink from left (decrement freq of left char).
+ * APPROACH 1: Sliding window with a never-decreasing maxFreq  (primary)
+ *   1. Expand right, counting letters; maxFreq = highest count seen in any window.
+ *   2. While (window length − maxFreq) > k, shrink from the left.
+ *   3. Track the largest window.
+ *   Intuition: the answer only grows when maxFreq grows, so a stale (too high)
+ *   maxFreq can never make an invalid window beat the best answer.
+ *   TIME O(n) · SPACE O(1) — 26 counters
  *
- * WHY THIS WORKS:
- * A window can be made all-one-letter iff (windowSize - maxFreq) <= k:
- * keep the most common letter, replace everything else.
+ * APPROACH 2: Sliding window, recompute the true max each step
+ *   1. Same window, but after every change scan all 26 counts for the real max.
+ *   2. Shrink while (length − realMax) > k.
+ *   Intuition: easier to trust and explain — no "stale max" argument needed.
+ *   TIME O(26 · n) = O(n) · SPACE O(1)
  *
- * Subtle point (interviewers ask this): we never lower maxFreq when the
- * left side shrinks, so it can be "stale" (too high). That's safe because
- * a window of size L needs maxFreq >= L - k to beat our best answer.
- * The answer can only grow when maxFreq itself reaches a new high, so a
- * stale maxFreq never lets an invalid window be counted as a new best.
- *
- * TIME  : O(n)
- * SPACE : O(1) — fixed 26-char array
+ * WHICH TO USE:
+ *   Start with #2 (obviously correct), then optimise to #1 and explain why the
+ *   stale maxFreq is safe — that explanation is what interviewers look for.
  * ============================================================
  */
 public class LongestRepeatingCharReplacement {
 
+    /** Approach 1 — window with never-decreasing maxFreq. TIME O(n) · SPACE O(1) */
     public int characterReplacement(String s, int k) {
         int[] freq = new int[26];
         int maxFreq = 0, left = 0, maxLength = 0;
@@ -64,5 +64,26 @@ public class LongestRepeatingCharReplacement {
             maxLength = Math.max(maxLength, right - left + 1);
         }
         return maxLength;
+    }
+
+    /** Approach 2 — window, recompute the real max over 26 letters. TIME O(26·n) · SPACE O(1) */
+    public int characterReplacementRecountMax(String s, int k) {
+        int[] freq = new int[26];
+        int left = 0, best = 0;
+        for (int right = 0; right < s.length(); right++) {
+            freq[s.charAt(right) - 'A']++;
+            while ((right - left + 1) - max(freq) > k) {
+                freq[s.charAt(left) - 'A']--;
+                left++;
+            }
+            best = Math.max(best, right - left + 1);
+        }
+        return best;
+    }
+
+    private int max(int[] freq) {
+        int m = 0;
+        for (int f : freq) m = Math.max(m, f);
+        return m;
     }
 }

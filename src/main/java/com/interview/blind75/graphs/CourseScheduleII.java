@@ -1,5 +1,7 @@
 package com.interview.blind75.graphs;
 
+import java.util.Deque;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,24 +27,35 @@ import java.util.List;
  *   - 1 <= numCourses <= 2000
  *
  * ============================================================
- * APPROACH: DFS Post-order → Topological Order
+ * APPROACHES  (V = numCourses, E = prerequisites.length)
  * ============================================================
- * 1. Same 3-color DFS as CourseSchedule.
- * 2. After visiting all neighbors, push node to result list.
- * 3. Return the post-order list as-is (no reverse needed — see below).
- *
- * WHY THIS WORKS:
- * Edges point course → prerequisite. Post-order adds a node only after
- * every prerequisite reachable from it has been added, so prerequisites
- * always appear first. That list is already a valid course order.
- * (If edges pointed prereq → course instead, you would reverse it.)
- *
+ * APPROACH 1: DFS post-order (3-colour) → topological order
+ * 1. Same 3-colour DFS as Course Schedule, along course → prerequisite edges.
+ * 2. Append a course after all its prerequisites have been appended (post-order).
+ * 3. Return that list as-is; a grey-node hit means a cycle → return [].
+ * Intuition: because edges point to prerequisites, post-order already lists them first
+ * (with prerequisite → course edges you'd reverse the list instead).
  * TIME  : O(V + E)
- * SPACE : O(V + E)
+ * SPACE : O(V + E) adjacency + O(V) state/order + O(V) recursion depth
+ *
+ * APPROACH 2: Kahn's algorithm (BFS)
+ * 1. Edges prerequisite → course; compute indegrees.
+ * 2. Start with all indegree-0 courses; each time one is taken, append it to the order and
+ *    decrement its dependents, queuing those that reach 0.
+ * 3. If fewer than V courses were taken there's a cycle → return [].
+ * Intuition: the order in which courses become "free" is a valid schedule.
+ * TIME  : O(V + E)
+ * SPACE : O(V + E) — no recursion
+ *
+ * WHICH TO USE:
+ * Kahn's is the most common interview answer (iterative, the order falls out directly,
+ * and it's easy to get the lexicographically smallest order by swapping in a min-heap).
+ * DFS post-order is equally optimal — explain the edge-direction subtlety.
  * ============================================================
  */
 public class CourseScheduleII {
 
+    /** Approach 1 — DFS post-order. TIME O(V + E) · SPACE O(V + E) */
     public int[] findOrder(int numCourses, int[][] prerequisites) {
         List<List<Integer>> adj = new ArrayList<>();
         for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());
@@ -70,5 +83,30 @@ public class CourseScheduleII {
         state[node] = 2;
         order.add(node);
         return true;
+    }
+
+    /** Approach 2 — Kahn's BFS topological sort. TIME O(V + E) · SPACE O(V + E) */
+    public int[] findOrderKahn(int numCourses, int[][] prerequisites) {
+        List<List<Integer>> dependents = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) dependents.add(new ArrayList<>());
+        int[] indegree = new int[numCourses];
+        for (int[] pre : prerequisites) {
+            dependents.get(pre[1]).add(pre[0]);
+            indegree[pre[0]]++;
+        }
+
+        Deque<Integer> queue = new ArrayDeque<>();
+        for (int i = 0; i < numCourses; i++) if (indegree[i] == 0) queue.offer(i);
+
+        int[] order = new int[numCourses];
+        int taken = 0;
+        while (!queue.isEmpty()) {
+            int course = queue.poll();
+            order[taken++] = course;
+            for (int next : dependents.get(course)) {
+                if (--indegree[next] == 0) queue.offer(next);
+            }
+        }
+        return taken == numCourses ? order : new int[0];
     }
 }

@@ -1,5 +1,9 @@
 package com.interview.blind75.arrays;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * ============================================================
  * PROBLEM : Valid Anagram
@@ -25,24 +29,34 @@ package com.interview.blind75.arrays;
  *   - s and t consist of lowercase English letters
  *
  * ============================================================
- * APPROACH: Frequency Count Array
+ * APPROACHES
  * ============================================================
- * 1. If lengths differ, they can't be anagrams — return false early.
- * 2. Create an int[26] frequency array (a=0, b=1, ..., z=25).
- * 3. Increment count for each character in s.
- * 4. Decrement count for each character in t.
- * 5. If all counts are zero, t is an anagram of s.
+ * APPROACH 1: Frequency count array  (primary)
+ *   1. If lengths differ → false.
+ *   2. int[26]: +1 for each char of s, −1 for each char of t.
+ *   3. Anagram iff every count ends at 0.
+ *   Intuition: anagrams have identical letter frequencies.
+ *   TIME O(n) · SPACE O(1) — fixed 26 counters
  *
- * WHY THIS WORKS:
- * An anagram has identical character frequencies. Incrementing for s
- * and decrementing for t means any mismatch leaves a non-zero count.
+ * APPROACH 2: Sort both strings
+ *   1. Sort the characters of s and of t.
+ *   2. Anagram iff the sorted arrays are equal.
+ *   Intuition: sorting gives every anagram the same canonical form.
+ *   TIME O(n log n) · SPACE O(n) for the char arrays
  *
- * TIME  : O(n)
- * SPACE : O(1) — fixed 26-element array
+ * APPROACH 3: HashMap counts (Unicode follow-up)
+ *   1. Same as #1, but count in a HashMap<Integer, Integer> keyed by code point.
+ *   Intuition: works for any alphabet, not just 'a'–'z'.
+ *   TIME O(n) · SPACE O(k), k = distinct characters
+ *
+ * WHICH TO USE:
+ *   Lead with #1. #2 is the simplest to write. #3 answers the common
+ *   follow-up "what if the input contains Unicode characters?"
  * ============================================================
  */
 public class ValidAnagram {
 
+    /** Approach 1 — int[26] frequency count. TIME O(n) · SPACE O(1) */
     public boolean isAnagram(String s, String t) {
         if (s.length() != t.length()) return false;
 
@@ -52,6 +66,29 @@ public class ValidAnagram {
 
         for (int count : freq) {
             if (count != 0) return false;
+        }
+        return true;
+    }
+
+    /** Approach 2 — sort both strings and compare. TIME O(n log n) · SPACE O(n) */
+    public boolean isAnagramSorting(String s, String t) {
+        if (s.length() != t.length()) return false;
+        char[] a = s.toCharArray();
+        char[] b = t.toCharArray();
+        Arrays.sort(a);
+        Arrays.sort(b);
+        return Arrays.equals(a, b);
+    }
+
+    /** Approach 3 — HashMap counts by code point (any alphabet). TIME O(n) · SPACE O(k) */
+    public boolean isAnagramHashMap(String s, String t) {
+        if (s.length() != t.length()) return false;
+        Map<Integer, Integer> counts = new HashMap<>();
+        s.codePoints().forEach(cp -> counts.merge(cp, 1, Integer::sum));
+        for (int cp : t.codePoints().toArray()) {
+            int left = counts.getOrDefault(cp, 0) - 1;
+            if (left < 0) return false;
+            counts.put(cp, left);
         }
         return true;
     }

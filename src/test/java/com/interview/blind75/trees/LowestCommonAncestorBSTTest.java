@@ -1,11 +1,21 @@
 package com.interview.blind75.trees;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class LowestCommonAncestorBSTTest {
 
-    private final LowestCommonAncestorBST solution = new LowestCommonAncestorBST();
+    interface Lca { TreeNode find(TreeNode root, TreeNode p, TreeNode q); }
+
+    private static final LowestCommonAncestorBST solution = new LowestCommonAncestorBST();
+
+    static Stream<Lca> approaches() {
+        return Stream.of(solution::lowestCommonAncestor, solution::lowestCommonAncestorRecursive);
+    }
 
     private TreeNode buildBST() {
         return new TreeNode(6,
@@ -13,27 +23,31 @@ class LowestCommonAncestorBSTTest {
                 new TreeNode(8, new TreeNode(7), new TreeNode(9)));
     }
 
-    @Test
-    void lcaAtRoot() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void lcaAtRoot(Lca lca) {
         TreeNode root = buildBST();
-        TreeNode p = root.left;       // 2
-        TreeNode q = root.right;      // 8
-        assertEquals(6, solution.lowestCommonAncestor(root, p, q).val);
+        assertEquals(6, lca.find(root, root.left, root.right).val);
     }
 
-    @Test
-    void nodeIsLCA() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void nodeIsLCA(Lca lca) {
         TreeNode root = buildBST();
-        TreeNode p = root.left;       // 2
-        TreeNode q = root.left.right; // 4
-        assertEquals(2, solution.lowestCommonAncestor(root, p, q).val);
+        assertEquals(2, lca.find(root, root.left, root.left.right).val);
     }
 
-    @Test
-    void deepNodes() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void deepNodes(Lca lca) {
         TreeNode root = buildBST();
-        TreeNode p = root.left.right.left;  // 3
-        TreeNode q = root.left.right.right; // 5
-        assertEquals(4, solution.lowestCommonAncestor(root, p, q).val);
+        assertEquals(4, lca.find(root, root.left.right.left, root.left.right.right).val);
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void sameNode(Lca lca) {
+        TreeNode root = buildBST();
+        assertEquals(7, lca.find(root, root.right.left, root.right.left).val);
     }
 }

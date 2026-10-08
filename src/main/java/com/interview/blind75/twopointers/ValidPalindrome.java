@@ -25,24 +25,28 @@ package com.interview.blind75.twopointers;
  *   - s consists only of printable ASCII characters
  *
  * ============================================================
- * APPROACH: Two Pointers with Alphanumeric Skip
+ * APPROACHES
  * ============================================================
- * 1. Place left pointer at start, right pointer at end.
- * 2. Skip non-alphanumeric characters on both sides.
- * 3. Compare lowercased characters at l and r.
- * 4. If mismatch found, return false. Else converge inward.
- * 5. If pointers cross without mismatch, return true.
+ * APPROACH 1: Two pointers, skipping non-alphanumerics  (primary)
+ *   1. l at the start, r at the end.
+ *   2. Skip characters that aren't letters or digits on each side.
+ *   3. Compare lowercased characters; a mismatch → false. Move both inward.
+ *   Intuition: a palindrome matches pairwise from the outside in.
+ *   TIME O(n) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * Two pointers work from outside in — if each pair of corresponding
- * characters matches, the string is palindromic by definition.
+ * APPROACH 2: Clean, then compare with the reverse
+ *   1. Build a lowercase string of only the letters and digits.
+ *   2. It's a palindrome iff it equals its reverse.
+ *   Intuition: removes the skipping logic at the cost of a copy.
+ *   TIME O(n) · SPACE O(n)
  *
- * TIME  : O(n)
- * SPACE : O(1)
+ * WHICH TO USE:
+ *   #2 is quickest to write; interviewers then ask for O(1) space → #1.
  * ============================================================
  */
 public class ValidPalindrome {
 
+    /** Approach 1 — two pointers in place. TIME O(n) · SPACE O(1) */
     public boolean isPalindrome(String s) {
         int l = 0, r = s.length() - 1;
         while (l < r) {
@@ -55,5 +59,15 @@ public class ValidPalindrome {
             r--;
         }
         return true;
+    }
+
+    /** Approach 2 — build cleaned string, compare with its reverse. TIME O(n) · SPACE O(n) */
+    public boolean isPalindromeCleanReverse(String s) {
+        StringBuilder clean = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (Character.isLetterOrDigit(c)) clean.append(Character.toLowerCase(c));
+        }
+        String forward = clean.toString();
+        return forward.equals(clean.reverse().toString());
     }
 }

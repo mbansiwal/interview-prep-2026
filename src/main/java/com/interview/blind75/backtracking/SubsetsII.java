@@ -28,24 +28,34 @@ import java.util.List;
  *   - May contain duplicates
  *
  * ============================================================
- * APPROACH: Backtracking with Sort + Skip Duplicates
+ * APPROACHES  (n = nums.length)
  * ============================================================
- * 1. Sort the array so duplicates are adjacent.
- * 2. At each level, skip candidates[i] if it equals candidates[i-1]
- *    AND i > start (we've already branched on this value at this level).
- * 3. Otherwise, same backtracking as Subsets.
- *
- * WHY THIS WORKS:
- * Sorting groups duplicates. The skip condition ensures that at each recursion
- * level, each distinct value is only used as the "first pick" once.
- * i > start (not i > 0) is crucial: it allows reuse in deeper levels.
- *
+ * APPROACH 1: Backtracking with sort + skip duplicates
+ * 1. Sort so equal values are adjacent.
+ * 2. Same as Subsets, but at each level skip nums[i] when i > start and nums[i] == nums[i-1].
+ * Intuition: at one level, each distinct value may be the "next pick" only once;
+ * `i > start` (not `i > 0`) still allows [2,2] deeper in the tree.
  * TIME  : O(n * 2^n)
- * SPACE : O(n)
+ * SPACE : O(n) recursion (excluding output)
+ *
+ * APPROACH 2: Iterative with duplicate handling
+ * 1. Sort. Start with [[]].
+ * 2. For a new value, extend every existing subset.
+ * 3. For a repeated value, extend only the subsets created in the previous step
+ *    (those already contain the earlier copy) — extending older ones would repeat subsets.
+ * Intuition: the k-th copy of a value can only follow a subset that took the (k-1)-th copy.
+ * TIME  : O(n * 2^n)
+ * SPACE : O(1) extra beyond the output (plus the sort)
+ *
+ * WHICH TO USE:
+ * Backtracking — the "i > start" skip is the reusable trick (Combination Sum II, Permutations II).
+ * The iterative version is a good follow-up if asked for no recursion.
+ * Note: both sort `nums` in place.
  * ============================================================
  */
 public class SubsetsII {
 
+    /** Approach 1 — Backtracking + skip duplicates. TIME O(n * 2^n) · SPACE O(n) recursion (sorts input) */
     public List<List<Integer>> subsetsWithDup(int[] nums) {
         Arrays.sort(nums);
         List<List<Integer>> result = new ArrayList<>();
@@ -62,5 +72,24 @@ public class SubsetsII {
             backtrack(nums, i + 1, current, result);
             current.remove(current.size() - 1);
         }
+    }
+
+    /** Approach 2 — Iterative, extend only last step's subsets on duplicates. TIME O(n * 2^n) · SPACE O(1) extra (sorts input) */
+    public List<List<Integer>> subsetsWithDupIterative(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> result = new ArrayList<>();
+        result.add(new ArrayList<>());
+        int previousStepStart = 0;
+        for (int i = 0; i < nums.length; i++) {
+            int from = (i > 0 && nums[i] == nums[i - 1]) ? previousStepStart : 0;
+            int existing = result.size();
+            for (int j = from; j < existing; j++) {
+                List<Integer> extended = new ArrayList<>(result.get(j));
+                extended.add(nums[i]);
+                result.add(extended);
+            }
+            previousStepStart = existing;
+        }
+        return result;
     }
 }

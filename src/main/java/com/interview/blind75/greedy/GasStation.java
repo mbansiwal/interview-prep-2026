@@ -21,7 +21,7 @@ package com.interview.blind75.greedy;
  *   - 1 <= n <= 10^5
  *
  * ============================================================
- * APPROACH: Greedy — Single Pass
+ * APPROACH 1: Greedy single pass                           → canCompleteCircuit
  * ============================================================
  * 1. If total gas < total cost, no solution exists → return -1.
  * 2. Track tank (running sum of net gas). When tank < 0:
@@ -32,14 +32,19 @@ package com.interview.blind75.greedy;
  * WHY THIS WORKS:
  * If total gas >= total cost, a solution exists and is unique.
  * When tank goes negative starting from `start`, we know `start` through
- * current can't be starting points, so we move start forward greedily.
+ * current can't be starting points (each had a non-negative running tank
+ * when we passed it, so starting there only removes fuel), so we jump past them.
  *
  * TIME  : O(n)
  * SPACE : O(1)
+ *
+ * ALTERNATIVES: brute force (simulate a full lap from every start) is O(n²) —
+ * no materially better alternative to the O(n) / O(1) greedy.
  * ============================================================
  */
 public class GasStation {
 
+    /** Approach 1 — Greedy single pass. TIME O(n) · SPACE O(1) */
     public int canCompleteCircuit(int[] gas, int[] cost) {
         int totalGas = 0, tank = 0, start = 0;
         for (int i = 0; i < gas.length; i++) {

@@ -27,24 +27,33 @@ import java.util.Deque;
  *   - 0 <= heights[i] <= 10^4
  *
  * ============================================================
- * APPROACH: Monotonic Increasing Stack
+ * APPROACHES
  * ============================================================
- * 1. Maintain a stack of (startIndex, height) pairs.
- * 2. For each bar, if shorter than stack top, pop and calculate area.
- *    The bar extends back to the start index of popped bars.
- * 3. After processing all bars, pop remaining stack entries using n as right boundary.
+ * APPROACH 1: Monotonic increasing stack of (start, height)  (primary)
+ *   1. Scan bars; while the stack top is taller than the current bar, pop it and
+ *      compute its area up to i. The current bar inherits the popped start.
+ *   2. After the scan, every bar left on the stack extends to the end.
+ *   Intuition: a bar's rectangle ends at the first shorter bar to its right and
+ *   starts just after the first shorter bar to its left.
+ *   TIME O(n) · SPACE O(n)
  *
- * WHY THIS WORKS:
- * Each popped bar's width extends from its stored startIndex to the current
- * position. The monotonic property ensures we compute the maximum possible
- * width for each height.
+ * APPROACH 2: Nearest-smaller boundary arrays
+ *   1. leftSmaller[i] = index of the nearest shorter bar to the left (or −1),
+ *      found by jumping: j = leftSmaller[j] while heights[j] ≥ heights[i].
+ *   2. rightSmaller[i] likewise to the right (or n).
+ *   3. area(i) = heights[i] × (rightSmaller[i] − leftSmaller[i] − 1).
+ *   Intuition: the same boundaries as #1, computed explicitly — easy to verify.
+ *   TIME O(n) amortized · SPACE O(n)
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   #1 is the classic one-pass answer. #2 is easier to explain step by step.
+ *   Brute force (expand from every bar) is O(n²); divide and conquer on the
+ *   minimum bar is O(n log n) average.
  * ============================================================
  */
 public class LargestRectangleInHistogram {
 
+    /** Approach 1 — monotonic increasing stack. TIME O(n) · SPACE O(n) */
     public int largestRectangleArea(int[] heights) {
         int maxArea = 0;
         Deque<int[]> stack = new ArrayDeque<>(); // [startIndex, height]
@@ -63,5 +72,26 @@ public class LargestRectangleInHistogram {
             maxArea = Math.max(maxArea, entry[1] * (heights.length - entry[0]));
         }
         return maxArea;
+    }
+
+    /** Approach 2 — nearest-smaller boundary arrays with jumps. TIME O(n) amortized · SPACE O(n) */
+    public int largestRectangleAreaBoundaries(int[] heights) {
+        int n = heights.length;
+        int[] leftSmaller = new int[n], rightSmaller = new int[n];
+        for (int i = 0; i < n; i++) {
+            int j = i - 1;
+            while (j >= 0 && heights[j] >= heights[i]) j = leftSmaller[j];
+            leftSmaller[i] = j;
+        }
+        for (int i = n - 1; i >= 0; i--) {
+            int j = i + 1;
+            while (j < n && heights[j] >= heights[i]) j = rightSmaller[j];
+            rightSmaller[i] = j;
+        }
+        int best = 0;
+        for (int i = 0; i < n; i++) {
+            best = Math.max(best, heights[i] * (rightSmaller[i] - leftSmaller[i] - 1));
+        }
+        return best;
     }
 }

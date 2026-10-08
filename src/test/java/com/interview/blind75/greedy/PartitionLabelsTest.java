@@ -14,6 +14,11 @@ class PartitionLabelsTest {
     }
 
     @Test
+    void example2WholeString() {
+        assertEquals(List.of(10), solution.partitionLabels("eccbbbbdec"));
+    }
+
+    @Test
     void allSame() {
         assertEquals(List.of(3), solution.partitionLabels("aaa"));
     }

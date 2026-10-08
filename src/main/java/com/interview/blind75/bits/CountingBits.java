@@ -20,25 +20,43 @@ package com.interview.blind75.bits;
  *   - 0 <= n <= 10^5
  *
  * ============================================================
- * APPROACH: DP with Bit Shift
+ * APPROACHES
  * ============================================================
- * dp[i] = dp[i >> 1] + (i & 1)
- * i >> 1 is i/2 (drop the last bit), and (i & 1) is the last bit value.
+ * Counting each number's bits separately is O(n log n); the follow-up asks for
+ * O(n) in one pass. Both DPs reuse an answer for a smaller number.
+ * (Space below excludes the n+1 output array, which the problem requires.)
  *
- * WHY THIS WORKS:
- * The number of 1-bits in i = number of 1-bits in i/2 + last bit of i.
- * This gives O(n) without any inner loop.
+ * APPROACH 1: Drop the last bit                            → countBits
+ *   1. dp[i] = dp[i >> 1] + (i & 1).
+ *   Intuition: i >> 1 is i without its lowest bit; add that bit back.
+ *   TIME  : O(n)    SPACE : O(1) extra
  *
- * TIME  : O(n)
- * SPACE : O(1) — output array not counted
+ * APPROACH 2: Drop the lowest SET bit                      → countBitsLowestSetBit
+ *   1. dp[i] = dp[i & (i - 1)] + 1.
+ *   Intuition: i & (i - 1) clears exactly one 1-bit (the Number of 1 Bits trick),
+ *   and the result is always smaller than i, so it's already computed.
+ *   TIME  : O(n)    SPACE : O(1) extra
+ *
+ * WHICH TO USE:
+ * Either — both are one line. Approach 2 links nicely to the n & (n-1) trick.
  * ============================================================
  */
 public class CountingBits {
 
+    /** Approach 1 — dp[i] = dp[i >> 1] + (i & 1). TIME O(n) · SPACE O(1) extra */
     public int[] countBits(int n) {
         int[] dp = new int[n + 1];
         for (int i = 1; i <= n; i++) {
             dp[i] = dp[i >> 1] + (i & 1);
+        }
+        return dp;
+    }
+
+    /** Approach 2 — dp[i] = dp[i & (i-1)] + 1. TIME O(n) · SPACE O(1) extra */
+    public int[] countBitsLowestSetBit(int n) {
+        int[] dp = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            dp[i] = dp[i & (i - 1)] + 1;
         }
         return dp;
     }

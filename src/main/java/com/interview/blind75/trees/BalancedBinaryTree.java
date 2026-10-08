@@ -24,22 +24,24 @@ package com.interview.blind75.trees;
  *   - 0 <= number of nodes <= 5000
  *
  * ============================================================
- * APPROACH: DFS Height with Early Termination
+ * APPROACHES  (n = nodes, h = height)
  * ============================================================
- * 1. DFS returns height of subtree, or -1 if any subtree is unbalanced.
- * 2. If |leftHeight - rightHeight| > 1, propagate -1 upward.
+ * APPROACH 1: Bottom-Up DFS Height with -1 Sentinel
+ * 1. DFS returns the subtree height, or -1 if any subtree is unbalanced.
+ * 2. If |leftHeight - rightHeight| > 1, return -1 and stop exploring.
  * 3. Otherwise return 1 + max(left, right).
- *
- * WHY THIS WORKS:
- * By returning -1 as a sentinel, we avoid a separate "isBalanced" flag
- * and terminate the recursion early when imbalance is found.
- *
+ * Intuition: compute heights once, bottom-up, and short-circuit on the first imbalance.
  * TIME  : O(n)
- * SPACE : O(h)
+ * SPACE : O(h) — recursion stack
+ *
+ * ALTERNATIVES: top-down (call height() at every node, then recurse) is
+ * O(n log n) for balanced trees and O(n²) for skewed ones because heights are
+ * recomputed — no materially better alternative to Approach 1.
  * ============================================================
  */
 public class BalancedBinaryTree {
 
+    /** Approach 1 — Bottom-up height with early exit. TIME O(n) · SPACE O(h) recursion stack */
     public boolean isBalanced(TreeNode root) {
         return checkHeight(root) != -1;
     }

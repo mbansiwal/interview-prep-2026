@@ -25,23 +25,24 @@ package com.interview.blind75.binarysearch;
  *   - 1 <= piles[i] <= 10^9
  *
  * ============================================================
- * APPROACH: Binary Search on Answer Space
+ * APPROACHES
  * ============================================================
- * 1. Search space for k is [1, max(piles)].
- * 2. For a given k, total hours = sum(ceil(pile/k)).
- * 3. If hours <= h, k is feasible → try smaller (right = mid).
- * 4. If hours > h, k is too slow → try larger (left = mid+1).
+ * APPROACH 1: Binary search on the answer (eating speed)  (primary — the only optimal approach)
+ *   1. The speed k lies in [1, max(piles)].
+ *   2. canFinish(k): hours = Σ ceil(pile / k) ≤ h. It's monotonic in k.
+ *   3. Binary-search for the smallest k where canFinish is true.
+ *   Intuition: if Koko can finish at speed k, she can at any faster speed —
+ *   so "can finish" flips from false to true exactly once.
+ *   TIME O(n · log max(piles)) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * The feasibility function is monotone: higher k is always feasible
- * if lower k is. Binary search finds the minimum valid k.
- *
- * TIME  : O(n log m)  where m = max(piles)
- * SPACE : O(1)
+ * ALTERNATIVES:
+ *   Brute force — try k = 1, 2, 3, … until it works — is O(n · max(piles)).
+ *   No materially better alternative to binary search on the answer.
  * ============================================================
  */
 public class KokoEatingBananas {
 
+    /** Approach 1 — binary search on speed. TIME O(n · log max(piles)) · SPACE O(1) */
     public int minEatingSpeed(int[] piles, int h) {
         int left = 1, right = 0;
         for (int pile : piles) right = Math.max(right, pile);
@@ -54,6 +55,7 @@ public class KokoEatingBananas {
         return left;
     }
 
+    // TIME O(n): total hours at this speed, using ceil(a / b) = (a + b − 1) / b
     private boolean canFinish(int[] piles, int speed, int h) {
         long hours = 0;
         for (int pile : piles) hours += (pile + speed - 1) / speed;

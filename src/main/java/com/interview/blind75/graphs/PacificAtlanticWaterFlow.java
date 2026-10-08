@@ -27,25 +27,35 @@ import java.util.Queue;
  *   - 0 <= heights[r][c] <= 10^5
  *
  * ============================================================
- * APPROACH: Reverse BFS from Ocean Edges
+ * APPROACHES  (m × n grid)
  * ============================================================
- * 1. BFS from all Pacific-edge cells: mark cells reachable going UPHILL.
- * 2. BFS from all Atlantic-edge cells: same.
- * 3. Cells reachable from both are the answer.
- * 4. "Uphill" = neighbor.height >= current.height (reverse flow direction).
+ * Key idea for both: reverse the flow. Instead of asking "where can water from this cell go?"
+ * (one search per cell = O((m * n)²)), start from each ocean's edge and walk UPHILL
+ * (neighbour height >= current). Cells reached from both oceans are the answer.
  *
- * WHY THIS WORKS:
- * Instead of simulating flow from every cell (expensive), we reverse:
- * "can water reach Pacific?" = "can we reach this cell starting from Pacific edges going uphill?"
+ * APPROACH 1: Multi-source BFS from each ocean's edge
+ * 1. Queue every Pacific-edge cell (top row, left column); BFS uphill, marking pacific[][].
+ * 2. Do the same from the Atlantic edge (bottom row, right column) into atlantic[][].
+ * 3. Collect cells marked in both.
+ * TIME  : O(m * n) — each cell enters each queue at most once
+ * SPACE : O(m * n) for the two visited grids (+ queue)
  *
+ * APPROACH 2: DFS from each ocean's edge
+ * 1. Run a recursive uphill DFS from every edge cell instead of a queue.
+ * 2. Same intersection step.
  * TIME  : O(m * n)
- * SPACE : O(m * n)
+ * SPACE : O(m * n) visited grids + O(m * n) recursion depth in the worst case
+ *
+ * WHICH TO USE:
+ * Either is fine and equally fast; BFS avoids deep recursion on large grids,
+ * DFS is a little shorter to write. The reverse-flow idea is what's being tested.
  * ============================================================
  */
 public class PacificAtlanticWaterFlow {
 
     private static final int[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};
 
+    /** Approach 1 — Multi-source reverse BFS. TIME O(m * n) · SPACE O(m * n) */
     public List<List<Integer>> pacificAtlantic(int[][] heights) {
         int m = heights.length, n = heights[0].length;
         boolean[][] pacific = new boolean[m][n];
@@ -65,14 +75,7 @@ public class PacificAtlanticWaterFlow {
 
         bfs(heights, pq, pacific);
         bfs(heights, aq, atlantic);
-
-        List<List<Integer>> result = new ArrayList<>();
-        for (int r = 0; r < m; r++) {
-            for (int c = 0; c < n; c++) {
-                if (pacific[r][c] && atlantic[r][c]) result.add(List.of(r, c));
-            }
-        }
-        return result;
+        return bothOceans(pacific, atlantic);
     }
 
     private void bfs(int[][] heights, Queue<int[]> queue, boolean[][] visited) {
@@ -87,5 +90,41 @@ public class PacificAtlanticWaterFlow {
                 queue.offer(new int[]{nr, nc});
             }
         }
+    }
+
+    /** Approach 2 — Reverse DFS from the edges. TIME O(m * n) · SPACE O(m * n) */
+    public List<List<Integer>> pacificAtlanticDfs(int[][] heights) {
+        int m = heights.length, n = heights[0].length;
+        boolean[][] pacific = new boolean[m][n];
+        boolean[][] atlantic = new boolean[m][n];
+        for (int r = 0; r < m; r++) {
+            dfs(heights, r, 0, pacific);
+            dfs(heights, r, n - 1, atlantic);
+        }
+        for (int c = 0; c < n; c++) {
+            dfs(heights, 0, c, pacific);
+            dfs(heights, m - 1, c, atlantic);
+        }
+        return bothOceans(pacific, atlantic);
+    }
+
+    private void dfs(int[][] heights, int r, int c, boolean[][] visited) {
+        if (visited[r][c]) return;
+        visited[r][c] = true;
+        for (int[] d : DIRS) {
+            int nr = r + d[0], nc = c + d[1];
+            if (nr < 0 || nr >= heights.length || nc < 0 || nc >= heights[0].length) continue;
+            if (heights[nr][nc] >= heights[r][c]) dfs(heights, nr, nc, visited);
+        }
+    }
+
+    private List<List<Integer>> bothOceans(boolean[][] pacific, boolean[][] atlantic) {
+        List<List<Integer>> result = new ArrayList<>();
+        for (int r = 0; r < pacific.length; r++) {
+            for (int c = 0; c < pacific[0].length; c++) {
+                if (pacific[r][c] && atlantic[r][c]) result.add(List.of(r, c));
+            }
+        }
+        return result;
     }
 }

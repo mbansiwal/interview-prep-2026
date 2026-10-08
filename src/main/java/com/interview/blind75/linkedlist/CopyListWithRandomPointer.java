@@ -24,21 +24,26 @@ import java.util.Map;
  *   - 0 <= n <= 1000
  *
  * ============================================================
- * APPROACH: HashMap Old-to-New Node Mapping
+ * APPROACHES
  * ============================================================
- * 1. First pass: create a copy node for every original node, store in map.
- * 2. Second pass: wire copy.next and copy.random using the map.
- *
- * WHY THIS WORKS:
- * Two-pass approach separates node creation from pointer wiring.
- * The HashMap ensures every original→copy mapping is available
- * before we assign any pointers.
- *
- * FOLLOW-UP (O(1) extra space): interleave copies into the list
- * (A→A'→B→B'), set A'.random = A.random.next, then split the two lists apart.
- *
+ * APPROACH 1: HashMap Old → New Mapping (two passes)
+ * 1. First pass: create a copy of every node and store original → copy in a map.
+ * 2. Second pass: set copy.next = map.get(orig.next), copy.random = map.get(orig.random).
+ * Intuition: separate "create nodes" from "wire pointers" so every target exists.
  * TIME  : O(n)
- * SPACE : O(n)
+ * SPACE : O(n) — the map
+ *
+ * APPROACH 2: Interleave Copies In Place (no map)
+ * 1. Insert each copy right after its original: A→A'→B→B'→…
+ * 2. Set randoms: A'.random = A.random == null ? null : A.random.next.
+ * 3. Split the woven list back into the original and the copy.
+ * Intuition: the copy of X always sits at X.next, so the list itself is the map.
+ * TIME  : O(n) — three passes
+ * SPACE : O(1) extra (besides the output nodes); temporarily mutates input, restored at the end
+ *
+ * WHICH TO USE:
+ * The HashMap version is the clearest and the usual first answer. Interviewers
+ * frequently follow up with "can you do it without the map?" → Approach 2.
  * ============================================================
  */
 public class CopyListWithRandomPointer {
@@ -50,6 +55,7 @@ public class CopyListWithRandomPointer {
         public Node(int val) { this.val = val; }
     }
 
+    /** Approach 1 — HashMap old→new. TIME O(n) · SPACE O(n) */
     public Node copyRandomList(Node head) {
         if (head == null) return null;
 
@@ -70,5 +76,28 @@ public class CopyListWithRandomPointer {
         }
 
         return map.get(head);
+    }
+
+    /** Approach 2 — Interleave copies, then split. TIME O(n) · SPACE O(1) extra · input restored */
+    public Node copyRandomListInterleaved(Node head) {
+        if (head == null) return null;
+
+        for (Node curr = head; curr != null; curr = curr.next.next) {
+            Node copy = new Node(curr.val);
+            copy.next = curr.next;
+            curr.next = copy;
+        }
+
+        for (Node curr = head; curr != null; curr = curr.next.next) {
+            curr.next.random = (curr.random == null) ? null : curr.random.next;
+        }
+
+        Node copyHead = head.next;
+        for (Node curr = head; curr != null; curr = curr.next) {
+            Node copy = curr.next;
+            curr.next = copy.next;
+            copy.next = (copy.next == null) ? null : copy.next.next;
+        }
+        return copyHead;
     }
 }

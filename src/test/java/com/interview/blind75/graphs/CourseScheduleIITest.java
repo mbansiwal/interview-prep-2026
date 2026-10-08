@@ -1,11 +1,23 @@
 package com.interview.blind75.graphs;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CourseScheduleIITest {
 
-    private final CourseScheduleII solution = new CourseScheduleII();
+    private static final CourseScheduleII solution = new CourseScheduleII();
+
+    static Stream<Named<BiFunction<Integer, int[][], int[]>>> approaches() {
+        return Stream.of(
+                Named.of("dfs post-order", solution::findOrder),
+                Named.of("kahn bfs", solution::findOrderKahn));
+    }
 
     private static void assertValidOrder(int numCourses, int[][] prereqs, int[] order) {
         assertEquals(numCourses, order.length);
@@ -19,25 +31,29 @@ class CourseScheduleIITest {
         }
     }
 
-    @Test
-    void twoCoursesOrder() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void twoCoursesOrder(BiFunction<Integer, int[][], int[]> approach) {
         int[][] prereqs = {{1, 0}};
-        assertValidOrder(2, prereqs, solution.findOrder(2, prereqs));
+        assertValidOrder(2, prereqs, approach.apply(2, prereqs));
     }
 
-    @Test
-    void fourCoursesDiamond() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void fourCoursesDiamond(BiFunction<Integer, int[][], int[]> approach) {
         int[][] prereqs = {{1, 0}, {2, 0}, {3, 1}, {3, 2}};
-        assertValidOrder(4, prereqs, solution.findOrder(4, prereqs));
+        assertValidOrder(4, prereqs, approach.apply(4, prereqs));
     }
 
-    @Test
-    void cycleReturnsEmpty() {
-        assertEquals(0, solution.findOrder(2, new int[][]{{1, 0}, {0, 1}}).length);
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void cycleReturnsEmpty(BiFunction<Integer, int[][], int[]> approach) {
+        assertEquals(0, approach.apply(2, new int[][]{{1, 0}, {0, 1}}).length);
     }
 
-    @Test
-    void noDependencies() {
-        assertValidOrder(3, new int[0][], solution.findOrder(3, new int[][]{}));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void noDependencies(BiFunction<Integer, int[][], int[]> approach) {
+        assertValidOrder(3, new int[0][], approach.apply(3, new int[][]{}));
     }
 }

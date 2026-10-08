@@ -24,29 +24,30 @@ package com.interview.blind75.arrays;
  *   - board[i][j] is a digit '1'-'9' or '.'
  *
  * ============================================================
- * APPROACH: Three boolean "seen" tables
+ * APPROACHES
  * ============================================================
- * 1. Create boolean[9][9] tables: rowSeen, colSeen, boxSeen.
- *    rowSeen[r][d] == true means digit d+1 already appears in row r.
- * 2. For each cell (r, c) holding a digit:
- *    a. d = digit - '1'  (maps '1'..'9' to 0..8).
- *    b. box = (r/3)*3 + (c/3)  (numbers the 3×3 boxes 0..8, row by row).
- *    c. If rowSeen[r][d], colSeen[c][d] or boxSeen[box][d] is already
- *       true → duplicate → return false.
- *    d. Otherwise mark all three true.
- * 3. No duplicates found → return true.
+ * APPROACH 1: Three boolean "seen" tables  (primary)
+ *   1. rowSeen[r][d], colSeen[c][d], boxSeen[b][d] say whether digit d+1 was seen.
+ *   2. For each filled cell: d = digit − '1', b = (r/3)*3 + c/3.
+ *   3. If any of the three flags is already set → false; otherwise set all three.
+ *   Intuition: 27 units (9 rows, 9 cols, 9 boxes), each with 9 flags, checked in one pass.
+ *   TIME O(81) = O(1) · SPACE O(243) = O(1)
  *
- * WHY THIS WORKS:
- * Each of the 27 units (9 rows, 9 cols, 9 boxes) gets its own "seen"
- * row of 9 flags, so a single pass checks all three rules at once.
- * Plain arrays are clearer and faster than HashSets for a fixed 1-9 range.
+ * APPROACH 2: Bitmasks — one int per unit
+ *   1. rows[r], cols[c], boxes[b] are 9-bit masks; bit d means "digit d+1 seen".
+ *   2. For each filled cell, bit = 1 << d. If (rows[r] | cols[c] | boxes[b]) & bit ≠ 0 → false.
+ *   3. Otherwise OR the bit into all three masks.
+ *   Intuition: the same flags packed into 27 ints — fewer allocations, one AND per check.
+ *   TIME O(81) = O(1) · SPACE O(27) = O(1)
  *
- * TIME  : O(81) = O(1)
- * SPACE : O(243) = O(1) — three 9×9 tables
+ * WHICH TO USE:
+ *   Both are O(1) for a fixed 9×9 board. #1 is clearest; #2 is a nice touch if
+ *   asked to optimise memory. HashSet-of-strings versions work but are slower.
  * ============================================================
  */
 public class ValidSudoku {
 
+    /** Approach 1 — three boolean[9][9] tables. TIME O(1) (81 cells) · SPACE O(1) */
     public boolean isValidSudoku(char[][] board) {
         boolean[][] rowSeen = new boolean[9][9];
         boolean[][] colSeen = new boolean[9][9];
@@ -62,6 +63,24 @@ public class ValidSudoku {
 
                 if (rowSeen[r][d] || colSeen[c][d] || boxSeen[box][d]) return false;
                 rowSeen[r][d] = colSeen[c][d] = boxSeen[box][d] = true;
+            }
+        }
+        return true;
+    }
+
+    /** Approach 2 — one 9-bit mask per row/col/box. TIME O(1) (81 cells) · SPACE O(1) */
+    public boolean isValidSudokuBitmask(char[][] board) {
+        int[] rows = new int[9], cols = new int[9], boxes = new int[9];
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                char cell = board[r][c];
+                if (cell == '.') continue;
+                int bit = 1 << (cell - '1');
+                int box = (r / 3) * 3 + (c / 3);
+                if (((rows[r] | cols[c] | boxes[box]) & bit) != 0) return false;
+                rows[r] |= bit;
+                cols[c] |= bit;
+                boxes[box] |= bit;
             }
         }
         return true;

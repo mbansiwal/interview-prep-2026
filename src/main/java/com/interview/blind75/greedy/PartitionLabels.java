@@ -23,7 +23,7 @@ import java.util.List;
  *   - 1 <= s.length <= 500
  *
  * ============================================================
- * APPROACH: Greedy — Last Occurrence of Each Character
+ * APPROACH 1: Greedy — last occurrence of each character  → partitionLabels
  * ============================================================
  * 1. Record the last index of every character.
  * 2. Scan left to right, tracking `end` (max last-index seen so far).
@@ -31,14 +31,20 @@ import java.util.List;
  *
  * WHY THIS WORKS:
  * A partition is valid only if it includes every occurrence of every character
- * within it. Expanding `end` to cover all occurrences ensures this.
+ * within it. Expanding `end` to cover all occurrences ensures this, and cutting
+ * as soon as i == end gives the most (smallest) parts.
  *
  * TIME  : O(n)
- * SPACE : O(1) — 26-char array
+ * SPACE : O(1) — 26-entry array (output list not counted)
+ *
+ * ALTERNATIVES: treating each letter's [first, last] as an interval and merging
+ * overlaps (Merge Intervals) gives the same answer in O(n) — it's the same idea
+ * with more code; no materially better alternative.
  * ============================================================
  */
 public class PartitionLabels {
 
+    /** Approach 1 — Greedy using last occurrences. TIME O(n) · SPACE O(1) */
     public List<Integer> partitionLabels(String s) {
         int[] last = new int[26];
         for (int i = 0; i < s.length(); i++) last[s.charAt(i) - 'a'] = i;

@@ -27,23 +27,27 @@ import java.util.Deque;
  *   - Division by zero will not occur
  *
  * ============================================================
- * APPROACH: Stack-Based Postfix Evaluation
+ * APPROACHES
  * ============================================================
- * 1. For each token:
- *    - If it's a number, push to stack.
- *    - If it's an operator, pop two numbers (b first, then a), apply operator, push result.
- * 2. Final answer is the only value remaining on the stack.
+ * APPROACH 1: Stack of operands (Deque)  (primary)
+ *   1. Number → push. Operator → pop b, pop a, push (a op b).
+ *   2. The final stack top is the answer.
+ *   Intuition: in postfix, an operator always applies to the two most recent values.
+ *   TIME O(n) · SPACE O(n)
  *
- * WHY THIS WORKS:
- * RPN eliminates parentheses — operands always appear before their operator.
- * The stack naturally holds pending operands in the right order.
+ * APPROACH 2: int[] used as the stack
+ *   1. Same algorithm, with an int array and a top index.
+ *   Intuition: avoids boxing every Integer; the stack never exceeds the token count.
+ *   TIME O(n) · SPACE O(n)
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   #1 in interviews; #2 if asked to optimise constants. Watch operand order for
+ *   '−' and '/', and that Java's '/' truncates toward zero as the problem requires.
  * ============================================================
  */
 public class EvaluateRPN {
 
+    /** Approach 1 — Deque stack. TIME O(n) · SPACE O(n) */
     public int evalRPN(String[] tokens) {
         Deque<Integer> stack = new ArrayDeque<>();
         for (String token : tokens) {
@@ -56,5 +60,21 @@ public class EvaluateRPN {
             }
         }
         return stack.peek();
+    }
+
+    /** Approach 2 — int[] as the stack (no boxing). TIME O(n) · SPACE O(n) */
+    public int evalRPNArrayStack(String[] tokens) {
+        int[] stack = new int[tokens.length];
+        int top = 0;
+        for (String token : tokens) {
+            switch (token) {
+                case "+" -> { int b = stack[--top]; stack[top - 1] += b; }
+                case "-" -> { int b = stack[--top]; stack[top - 1] -= b; }
+                case "*" -> { int b = stack[--top]; stack[top - 1] *= b; }
+                case "/" -> { int b = stack[--top]; stack[top - 1] /= b; }
+                default  -> stack[top++] = Integer.parseInt(token);
+            }
+        }
+        return stack[0];
     }
 }

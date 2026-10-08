@@ -23,7 +23,7 @@ import java.util.Arrays;
  *   - 0 <= intervals.length <= 10^4
  *
  * ============================================================
- * APPROACH: Sort by Start, Check Adjacent Overlaps
+ * APPROACH 1: Sort by Start, Check Adjacent Overlaps
  * ============================================================
  * 1. Sort by start time.
  * 2. If any intervals[i][0] < intervals[i-1][1], they overlap → false.
@@ -33,11 +33,17 @@ import java.util.Arrays;
  * Overlap iff next start < previous end.
  *
  * TIME  : O(n log n)
- * SPACE : O(1) extra, plus the sort's own space (O(log n) to O(n))
+ * SPACE : O(1) extra, plus the sort's own space (O(log n) to O(n)) — sorts the input in place
+ *
+ * ALTERNATIVES: brute force compares every pair, O(n²) time and O(1) space.
+ * No materially better alternative.
+ *
+ * WHICH TO USE: sort by start and check neighbours. Note back-to-back meetings ([1,5],[5,8]) are fine.
  * ============================================================
  */
 public class MeetingRooms {
 
+    /** Approach 1 — Sort by start, check adjacent pairs. TIME O(n log n) · SPACE O(1) extra (sorts input) */
     public boolean canAttendMeetings(int[][] intervals) {
         Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
         for (int i = 1; i < intervals.length; i++) {

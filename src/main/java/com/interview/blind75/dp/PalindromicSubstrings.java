@@ -20,23 +20,32 @@ package com.interview.blind75.dp;
  *   - 1 <= s.length <= 1000
  *
  * ============================================================
- * APPROACH: Expand Around Center — Count Per Expansion
+ * APPROACHES
  * ============================================================
- * For each of the 2n-1 centers:
- * 1. Expand outward as long as s[left] == s[right].
- * 2. Each successful expansion is one palindromic substring.
+ * Brute force (check every substring) is O(n³).
  *
- * WHY THIS WORKS:
- * Every palindrome has a unique center. Expanding and counting gives all palindromes
- * in O(n) per center. Same technique as LongestPalindromicSubstring but we count
- * instead of tracking max length.
+ * APPROACH 1: Expand around center, count each expansion   → countSubstrings
+ *   1. For each of the 2n-1 centers, expand while s[left] == s[right].
+ *   2. Every successful expansion is one more palindrome.
+ *   Intuition: each palindrome has exactly one center, so nothing is double-counted.
+ *   TIME  : O(n²)    SPACE : O(1)
  *
- * TIME  : O(n^2)
- * SPACE : O(1)
+ * APPROACH 2: DP table                                     → countSubstringsDp
+ *   1. isPal[i][j] = s[i] == s[j] && (j - i < 3 || isPal[i+1][j-1]).
+ *   2. Fill i from right to left; count every true cell.
+ *   Intuition: a palindrome is a smaller palindrome with matching ends.
+ *   TIME  : O(n²)    SPACE : O(n²)
+ *
+ * (Manacher's algorithm counts them in O(n) time: sum of (p[i] + 1) / 2 over
+ *  the transformed string — see LongestPalindromicSubstring for the code.)
+ *
+ * WHICH TO USE:
+ * Approach 1 — same time, O(1) space, and reuses the LongestPalindromicSubstring idea.
  * ============================================================
  */
 public class PalindromicSubstrings {
 
+    /** Approach 1 — Expand around center. TIME O(n²) · SPACE O(1) */
     public int countSubstrings(String s) {
         int count = 0;
         for (int i = 0; i < s.length(); i++) {
@@ -52,6 +61,21 @@ public class PalindromicSubstrings {
             count++;
             left--;
             right++;
+        }
+        return count;
+    }
+
+    /** Approach 2 — DP table of palindromic substrings. TIME O(n²) · SPACE O(n²) */
+    public int countSubstringsDp(String s) {
+        int n = s.length(), count = 0;
+        boolean[][] isPal = new boolean[n][n];
+        for (int i = n - 1; i >= 0; i--) {
+            for (int j = i; j < n; j++) {
+                if (s.charAt(i) == s.charAt(j) && (j - i < 3 || isPal[i + 1][j - 1])) {
+                    isPal[i][j] = true;
+                    count++;
+                }
+            }
         }
         return count;
     }

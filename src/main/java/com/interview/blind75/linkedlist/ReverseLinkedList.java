@@ -24,23 +24,32 @@ package com.interview.blind75.linkedlist;
  *   - -5000 <= Node.val <= 5000
  *
  * ============================================================
- * APPROACH: Iterative Three-Pointer Reversal
+ * APPROACHES
  * ============================================================
+ * APPROACH 1: Iterative Three-Pointer Reversal
  * 1. Initialize prev=null, curr=head.
  * 2. At each step: save next=curr.next, point curr.next=prev.
- * 3. Advance: prev=curr, curr=next.
- * 4. Return prev (new head after loop).
- *
- * WHY THIS WORKS:
- * We reverse one link at a time. After processing all nodes, prev
- * points to the old tail, which is now the new head.
- *
+ * 3. Advance: prev=curr, curr=next. Return prev.
+ * Intuition: flip one link at a time; prev ends on the old tail (new head).
  * TIME  : O(n)
  * SPACE : O(1)
+ *
+ * APPROACH 2: Recursive
+ * 1. Base case: empty list or single node → return it.
+ * 2. Recursively reverse head.next; it returns the new head.
+ * 3. Point the old next node back at head (head.next.next = head), then cut head.next.
+ * Intuition: assume the rest is already reversed; attach head at its end.
+ * TIME  : O(n)
+ * SPACE : O(n) — recursion stack, one frame per node
+ *
+ * WHICH TO USE:
+ * Iterative is the expected answer (O(1) space, no stack-overflow risk on long
+ * lists). Interviewers often ask for the recursive version as a follow-up.
  * ============================================================
  */
 public class ReverseLinkedList {
 
+    /** Approach 1 — Iterative three-pointer. TIME O(n) · SPACE O(1) · mutates input */
     public ListNode reverseList(ListNode head) {
         ListNode prev = null, curr = head;
         while (curr != null) {
@@ -50,5 +59,14 @@ public class ReverseLinkedList {
             curr = next;
         }
         return prev;
+    }
+
+    /** Approach 2 — Recursive. TIME O(n) · SPACE O(n) recursion stack · mutates input */
+    public ListNode reverseListRecursive(ListNode head) {
+        if (head == null || head.next == null) return head;
+        ListNode newHead = reverseListRecursive(head.next);
+        head.next.next = head;
+        head.next = null;
+        return newHead;
     }
 }

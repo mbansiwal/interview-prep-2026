@@ -25,27 +25,26 @@ package com.interview.blind75.trees;
  *   - -1000 <= Node.val <= 1000
  *
  * ============================================================
- * APPROACH: DFS with Max Path Through Node
+ * APPROACHES  (n = nodes, h = height)
  * ============================================================
- * 1. At each node, compute max contribution from left and right subtrees.
- *    Negative contributions are cut off at 0 (don't extend through them).
- * 2. Update global max: node.val + max(0, leftGain) + max(0, rightGain).
- * 3. Return node.val + max(0, max(leftGain, rightGain)) for parent's use.
- *    (Can only choose one direction to extend a path upward.)
- *
- * WHY THIS WORKS:
- * A path through any node connects its best left chain, itself, and its
- * best right chain. We compute this locally and propagate the best single
- * direction upward.
- *
+ * APPROACH 1: DFS Returning the Best Downward "Gain"
+ * 1. For each node, get the best gain from the left and right subtrees, clamped at 0
+ *    (a negative branch is better left out).
+ * 2. Best path that peaks at this node = node.val + leftGain + rightGain; update the global max.
+ * 3. Return node.val + max(leftGain, rightGain) — a path going up can use only one side.
+ * Intuition: every path has one highest node; there it may use both sides, everywhere else only one.
  * TIME  : O(n)
- * SPACE : O(h)
+ * SPACE : O(h) — recursion stack
+ *
+ * ALTERNATIVES: brute force (try every node as the peak and recompute gains) is
+ * O(n²) — no materially better alternative to Approach 1.
  * ============================================================
  */
 public class BinaryTreeMaxPathSum {
 
     private int maxSum = Integer.MIN_VALUE;
 
+    /** Approach 1 — DFS with clamped gains and a global max. TIME O(n) · SPACE O(h) recursion stack */
     public int maxPathSum(TreeNode root) {
         maxSum = Integer.MIN_VALUE;
         gainFrom(root);

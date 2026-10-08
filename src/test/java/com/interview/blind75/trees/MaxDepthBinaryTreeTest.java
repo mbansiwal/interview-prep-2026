@@ -1,27 +1,45 @@
 package com.interview.blind75.trees;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.ToIntFunction;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MaxDepthBinaryTreeTest {
 
-    private final MaxDepthBinaryTree solution = new MaxDepthBinaryTree();
+    private static final MaxDepthBinaryTree solution = new MaxDepthBinaryTree();
 
-    @Test
-    void depth3() {
+    static Stream<ToIntFunction<TreeNode>> approaches() {
+        return Stream.of(solution::maxDepth, solution::maxDepthBfs);
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void depth3(ToIntFunction<TreeNode> depth) {
         TreeNode root = new TreeNode(3,
                 new TreeNode(9),
                 new TreeNode(20, new TreeNode(15), new TreeNode(7)));
-        assertEquals(3, solution.maxDepth(root));
+        assertEquals(3, depth.applyAsInt(root));
     }
 
-    @Test
-    void skewed() {
-        assertEquals(2, solution.maxDepth(new TreeNode(1, null, new TreeNode(2))));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void skewed(ToIntFunction<TreeNode> depth) {
+        assertEquals(2, depth.applyAsInt(new TreeNode(1, null, new TreeNode(2))));
     }
 
-    @Test
-    void nullTree() {
-        assertEquals(0, solution.maxDepth(null));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void singleNode(ToIntFunction<TreeNode> depth) {
+        assertEquals(1, depth.applyAsInt(new TreeNode(1)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void nullTree(ToIntFunction<TreeNode> depth) {
+        assertEquals(0, depth.applyAsInt(null));
     }
 }

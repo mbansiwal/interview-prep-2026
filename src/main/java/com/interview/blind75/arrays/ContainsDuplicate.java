@@ -1,5 +1,6 @@
 package com.interview.blind75.arrays;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,29 +28,43 @@ import java.util.Set;
  *   - -10^9 <= nums[i] <= 10^9
  *
  * ============================================================
- * APPROACH: HashSet Membership Check
+ * APPROACHES
  * ============================================================
- * 1. Create an empty HashSet to track seen numbers.
- * 2. For each number, try seen.add(num).
- * 3. Set.add returns false if the value was already present → duplicate → return true.
- * 4. If we finish without finding a duplicate, return false.
+ * APPROACH 1: HashSet membership  (primary)
+ *   1. Walk the array, calling seen.add(num) for each value.
+ *   2. Set.add returns false if the value was already present → duplicate.
+ *   Intuition: one O(1) hash operation both checks and records each value.
+ *   TIME O(n) · SPACE O(n)
  *
- * WHY THIS WORKS:
- * HashSet gives O(1) average insert + lookup. Set.add returns false when
- * the value is already present, so one call both checks and inserts.
+ * APPROACH 2: Sort, then compare neighbours
+ *   1. Sort the array.
+ *   2. Equal values are now adjacent; any nums[i] == nums[i-1] is a duplicate.
+ *   Intuition: sorting groups duplicates together, so one linear scan finds them.
+ *   TIME O(n log n) · SPACE O(log n) sort stack (mutates input)
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   Lead with #1 (linear time). Offer #2 if asked to avoid extra memory or
+ *   if the input may be modified. Brute force (compare every pair) is O(n²).
  * ============================================================
  */
 public class ContainsDuplicate {
 
+    /** Approach 1 — HashSet membership. TIME O(n) · SPACE O(n) */
     public boolean containsDuplicate(int[] nums) {
         Set<Integer> seen = new HashSet<>();
         for (int num : nums) {
             if (!seen.add(num)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /** Approach 2 — sort then compare neighbours. TIME O(n log n) · SPACE O(log n), mutates input */
+    public boolean containsDuplicateSorting(int[] nums) {
+        Arrays.sort(nums);
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == nums[i - 1]) return true;
         }
         return false;
     }

@@ -18,4 +18,10 @@ class ReverseIntegerTest {
 
     @Test
     void overflow() { assertEquals(0, solution.reverse(1534236469)); }
+
+    @Test
+    void minValueOverflows() { assertEquals(0, solution.reverse(Integer.MIN_VALUE)); }
+
+    @Test
+    void zero() { assertEquals(0, solution.reverse(0)); }
 }

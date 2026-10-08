@@ -25,24 +25,24 @@ package com.interview.blind75.linkedlist;
  *   - 0 <= Node.val <= 9
  *
  * ============================================================
- * APPROACH: Simulate Addition with Carry
+ * APPROACHES
  * ============================================================
- * 1. Traverse both lists simultaneously.
- * 2. Sum current digits + carry.
- * 3. New digit = sum % 10, new carry = sum / 10.
- * 4. Create a new node for each digit.
- * 5. If carry remains after both lists exhausted, add extra node.
- *
- * WHY THIS WORKS:
- * The head holds the ones digit, so walking the list from the head is the
- * same as adding by hand from the rightmost column, carrying as we go.
- *
+ * APPROACH 1: Simulate Addition with Carry
+ * 1. Traverse both lists together; sum = digit1 + digit2 + carry.
+ * 2. New digit = sum % 10, new carry = sum / 10; append a node for the digit.
+ * 3. Keep going while either list or the carry remains.
+ * Intuition: the head holds the ones digit, so walking from the head is the same
+ * as adding by hand from the rightmost column, carrying as we go.
  * TIME  : O(max(m,n))
- * SPACE : O(max(m,n)+1)
+ * SPACE : O(max(m,n)) — the output list; O(1) extra
+ *
+ * ALTERNATIVES: converting to integers overflows (up to 100 digits); a recursive
+ * version has the same time but O(max(m,n)) stack — no materially better alternative.
  * ============================================================
  */
 public class AddTwoNumbers {
 
+    /** Approach 1 — Digit-by-digit addition with carry. TIME O(max(m,n)) · SPACE O(1) extra (output O(max(m,n))) */
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
         ListNode dummy = new ListNode(0);
         ListNode curr = dummy;

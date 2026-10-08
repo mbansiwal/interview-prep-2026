@@ -1,5 +1,8 @@
 package com.interview.blind75.trees;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 /**
  * ============================================================
  * PROBLEM : Maximum Depth of Binary Tree
@@ -24,24 +27,50 @@ package com.interview.blind75.trees;
  *   - 0 <= number of nodes <= 10^4
  *
  * ============================================================
- * APPROACH: Recursive DFS
+ * APPROACHES  (n = nodes, h = height, w = max width)
  * ============================================================
+ * APPROACH 1: Recursive DFS
  * 1. Base case: null → depth 0.
- * 2. Recursively get left depth and right depth.
- * 3. Return 1 + max(leftDepth, rightDepth).
- *
- * WHY THIS WORKS:
- * Depth of a node = 1 (itself) + max depth of its subtrees.
- * The recursion naturally computes this bottom-up.
- *
+ * 2. Return 1 + max(depth(left), depth(right)).
+ * Intuition: a node's depth is itself plus its deeper subtree.
  * TIME  : O(n)
- * SPACE : O(h)
+ * SPACE : O(h) — recursion stack
+ *
+ * APPROACH 2: BFS Level Counting
+ * 1. Push the root into a queue; depth = 0.
+ * 2. For each level, pop exactly queue.size() nodes and push their children; depth++.
+ * 3. When the queue empties, depth is the number of levels.
+ * Intuition: max depth = number of levels, and BFS processes one level at a time.
+ * TIME  : O(n)
+ * SPACE : O(w) — the queue holds one level
+ *
+ * WHICH TO USE:
+ * Recursive DFS is the expected one-liner. BFS is equally optimal, has no
+ * recursion-depth risk, and is better for wide-but-shallow trees.
  * ============================================================
  */
 public class MaxDepthBinaryTree {
 
+    /** Approach 1 — Recursive DFS. TIME O(n) · SPACE O(h) recursion stack */
     public int maxDepth(TreeNode root) {
         if (root == null) return 0;
         return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+    }
+
+    /** Approach 2 — BFS level counting. TIME O(n) · SPACE O(w) queue */
+    public int maxDepthBfs(TreeNode root) {
+        if (root == null) return 0;
+        Deque<TreeNode> queue = new ArrayDeque<>();
+        queue.offer(root);
+        int depth = 0;
+        while (!queue.isEmpty()) {
+            for (int i = queue.size(); i > 0; i--) {
+                TreeNode node = queue.poll();
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+            }
+            depth++;
+        }
+        return depth;
     }
 }

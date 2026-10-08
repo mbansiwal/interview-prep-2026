@@ -1,48 +1,68 @@
 package com.interview.blind75.trees;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ValidateBSTTest {
 
-    private final ValidateBST solution = new ValidateBST();
+    private static final ValidateBST solution = new ValidateBST();
 
-    @Test
-    void validBST() {
-        assertTrue(solution.isValidBST(new TreeNode(2, new TreeNode(1), new TreeNode(3))));
+    static Stream<Predicate<TreeNode>> approaches() {
+        return Stream.of(solution::isValidBST, solution::isValidBSTInorder);
     }
 
-    @Test
-    void invalidBST() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void validBST(Predicate<TreeNode> valid) {
+        assertTrue(valid.test(new TreeNode(2, new TreeNode(1), new TreeNode(3))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void invalidBST(Predicate<TreeNode> valid) {
         TreeNode root = new TreeNode(5,
                 new TreeNode(1),
                 new TreeNode(4, new TreeNode(3), new TreeNode(6)));
-        assertFalse(solution.isValidBST(root));
+        assertFalse(valid.test(root));
     }
 
-    @Test
-    void hiddenViolation() {
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void hiddenViolation(Predicate<TreeNode> valid) {
         // [10,5,15,null,null,6,20] — 6 violates the left-subtree-of-10 constraint
         TreeNode root = new TreeNode(10,
                 new TreeNode(5),
                 new TreeNode(15, new TreeNode(6), new TreeNode(20)));
-        assertFalse(solution.isValidBST(root));
+        assertFalse(valid.test(root));
     }
 
-    @Test
-    void singleNodeAtIntMax() {
-        assertTrue(solution.isValidBST(new TreeNode(Integer.MAX_VALUE)));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void singleNodeAtIntMax(Predicate<TreeNode> valid) {
+        assertTrue(valid.test(new TreeNode(Integer.MAX_VALUE)));
     }
 
-    @Test
-    void intMinAndMaxValues() {
-        // [-2147483648,null,2147483647] — int bounds would wrongly reject this
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void intMinAndMaxValues(Predicate<TreeNode> valid) {
         TreeNode root = new TreeNode(Integer.MIN_VALUE, null, new TreeNode(Integer.MAX_VALUE));
-        assertTrue(solution.isValidBST(root));
+        assertTrue(valid.test(root));
     }
 
-    @Test
-    void duplicateValueIsInvalid() {
-        assertFalse(solution.isValidBST(new TreeNode(1, new TreeNode(1), null)));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void duplicateValueIsInvalid(Predicate<TreeNode> valid) {
+        assertFalse(valid.test(new TreeNode(1, new TreeNode(1), null)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void emptyTree(Predicate<TreeNode> valid) {
+        assertTrue(valid.test(null));
     }
 }

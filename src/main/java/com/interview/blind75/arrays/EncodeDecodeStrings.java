@@ -31,26 +31,29 @@ import java.util.List;
  *   - strs[i] can contain any of the 256 ASCII characters
  *
  * ============================================================
- * APPROACH: Length Prefix — "len#str"
+ * APPROACHES
  * ============================================================
- * 1. encode: for each string write its length, then '#', then the string.
- * 2. decode: at position i, read digits up to the next '#' → that's len.
- * 3. The next len characters after '#' are the string — take them blindly.
- * 4. Jump i to the end of that string and repeat.
+ * APPROACH 1: Length prefix — "len#str"  (primary)
+ *   1. encode: write each string's length, '#', then the string itself.
+ *   2. decode: read digits up to the next '#' → len; take the next len chars blindly.
+ *   Intuition: we never search for a delimiter inside the data, so any character is safe.
+ *   TIME O(N) encode and decode, N = total characters · SPACE O(N) output only
  *
- * WHY THIS WORKS:
- * A plain delimiter fails when the strings contain it. With a length
- * prefix we never search for a delimiter inside the data: we always know
- * exactly how many characters to take, so '#', digits, or empty strings
- * inside the data are harmless. The only '#' we look for is the one
- * right after the digits, and digits can't contain '#'.
+ * APPROACH 2: Escaping + terminator
+ *   1. encode: double every '#' ("#" → "##"), then end each string with "#;".
+ *   2. decode: scan; "##" → literal '#', "#;" → end of the current string.
+ *   Intuition: after escaping, a single '#' followed by ';' can only be our terminator.
+ *   TIME O(N) · SPACE O(N) output only
  *
- * TIME  : O(N) encode and decode, N = total characters
- * SPACE : O(N) for the output (no extra working space)
+ * WHICH TO USE:
+ *   #1 is the standard answer (also how many wire protocols frame messages).
+ *   #2 shows you understand escaping; it keeps the output readable but grows
+ *   when the data contains many '#'. A plain delimiter without escaping is wrong.
  * ============================================================
  */
 public class EncodeDecodeStrings {
 
+    /** Approach 1 — length prefix encode. TIME O(N) · SPACE O(N) output */
     public String encode(List<String> strs) {
         StringBuilder sb = new StringBuilder();
         for (String s : strs) {
@@ -59,6 +62,7 @@ public class EncodeDecodeStrings {
         return sb.toString();
     }
 
+    /** Approach 1 — length prefix decode. TIME O(N) · SPACE O(N) output */
     public List<String> decode(String encoded) {
         List<String> result = new ArrayList<>();
         int i = 0;
@@ -68,6 +72,37 @@ public class EncodeDecodeStrings {
             int start = hash + 1;
             result.add(encoded.substring(start, start + len));
             i = start + len;
+        }
+        return result;
+    }
+
+    /** Approach 2 — escape '#' as "##", terminate each string with "#;". TIME O(N) · SPACE O(N) output */
+    public String encodeEscaped(List<String> strs) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : strs) {
+            sb.append(s.replace("#", "##")).append("#;");
+        }
+        return sb.toString();
+    }
+
+    /** Approach 2 — decode "##" → '#', "#;" → end of string. TIME O(N) · SPACE O(N) output */
+    public List<String> decodeEscaped(String encoded) {
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int i = 0;
+        while (i < encoded.length()) {
+            char c = encoded.charAt(i);
+            if (c == '#' && encoded.charAt(i + 1) == '#') {
+                current.append('#');
+                i += 2;
+            } else if (c == '#') { // must be "#;"
+                result.add(current.toString());
+                current.setLength(0);
+                i += 2;
+            } else {
+                current.append(c);
+                i++;
+            }
         }
         return result;
     }

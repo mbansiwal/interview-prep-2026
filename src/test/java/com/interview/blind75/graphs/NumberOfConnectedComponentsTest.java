@@ -1,29 +1,45 @@
 package com.interview.blind75.graphs;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class NumberOfConnectedComponentsTest {
 
-    private final NumberOfConnectedComponents solution = new NumberOfConnectedComponents();
+    private static final NumberOfConnectedComponents solution = new NumberOfConnectedComponents();
 
-    @Test
-    void twoComponents() {
-        assertEquals(2, solution.countComponents(5, new int[][]{{0, 1}, {1, 2}, {3, 4}}));
+    static Stream<Named<BiFunction<Integer, int[][], Integer>>> approaches() {
+        return Stream.of(
+                Named.of("union-find", solution::countComponents),
+                Named.of("dfs", solution::countComponentsDfs));
     }
 
-    @Test
-    void singleChain() {
-        assertEquals(1, solution.countComponents(5, new int[][]{{0, 1}, {1, 2}, {2, 3}, {3, 4}}));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void twoComponents(BiFunction<Integer, int[][], Integer> approach) {
+        assertEquals(2, approach.apply(5, new int[][]{{0, 1}, {1, 2}, {3, 4}}));
     }
 
-    @Test
-    void noEdgesEveryNodeAlone() {
-        assertEquals(4, solution.countComponents(4, new int[][]{}));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void singleChain(BiFunction<Integer, int[][], Integer> approach) {
+        assertEquals(1, approach.apply(5, new int[][]{{0, 1}, {1, 2}, {2, 3}, {3, 4}}));
     }
 
-    @Test
-    void cycleDoesNotDoubleCount() {
-        assertEquals(2, solution.countComponents(4, new int[][]{{0, 1}, {1, 2}, {2, 0}}));
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void noEdgesEveryNodeAlone(BiFunction<Integer, int[][], Integer> approach) {
+        assertEquals(4, approach.apply(4, new int[][]{}));
+    }
+
+    @ParameterizedTest
+    @MethodSource("approaches")
+    void cycleDoesNotDoubleCount(BiFunction<Integer, int[][], Integer> approach) {
+        assertEquals(2, approach.apply(4, new int[][]{{0, 1}, {1, 2}, {2, 0}}));
     }
 }

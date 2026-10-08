@@ -1,5 +1,8 @@
 package com.interview.blind75.math;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * ============================================================
  * PROBLEM : Happy Number
@@ -21,25 +24,32 @@ package com.interview.blind75.math;
  *   - 1 <= n <= 2^31 - 1
  *
  * ============================================================
- * APPROACH: Floyd's Tortoise & Hare (no extra memory)
+ * APPROACHES
  * ============================================================
- * 1. Treat "n → sumOfSquares(n)" as following a pointer in an implicit linked list.
- * 2. slow moves one step, fast moves two steps.
- * 3. If fast reaches 1 → happy. If slow meets fast (not at 1) → stuck in a cycle → not happy.
+ * The sequence always ends in a cycle: either the fixed point 1 (1 → 1) or a loop
+ * that never contains 1. Both approaches detect which. Once n < 1000 every value
+ * stays below 243, so only O(log n) distinct numbers are ever visited.
  *
- * WHY THIS WORKS:
- * The sequence always ends in a cycle: either the fixed point 1 (1 → 1) or a
- * loop that never contains 1. Like detecting a cycle in a linked list, a fast
- * pointer inside a loop always catches up with the slow one, so we never need
- * to remember the numbers we've seen.
- * (Simpler alternative: store seen numbers in a HashSet — same time, O(log n) space.)
+ * APPROACH 1: Floyd's tortoise & hare                      → isHappy
+ *   1. Treat n → sumOfSquares(n) as following a pointer in an implicit linked list.
+ *   2. slow moves one step, fast moves two.
+ *   3. fast reaches 1 → happy; slow meets fast elsewhere → cycle without 1 → not happy.
+ *   Intuition: a fast pointer inside a loop always catches the slow one.
+ *   TIME  : O(log n)    SPACE : O(1)
  *
- * TIME  : O(log n) — digit sums shrink quickly to below 243, then cycle within a few steps
- * SPACE : O(1)
+ * APPROACH 2: HashSet of seen numbers                      → isHappyHashSet
+ *   1. Keep stepping; stop at 1 (happy) or at a number already in the set (cycle).
+ *   Intuition: the most direct "have I been here before?" check.
+ *   TIME  : O(log n)    SPACE : O(log n)
+ *
+ * WHICH TO USE:
+ * Approach 2 is the obvious first answer; offer Floyd (Approach 1) when asked to
+ * drop the extra memory — that's the follow-up interviewers look for.
  * ============================================================
  */
 public class HappyNumber {
 
+    /** Approach 1 — Floyd's tortoise & hare. TIME O(log n) · SPACE O(1) */
     public boolean isHappy(int n) {
         int slow = n;
         int fast = sumOfSquares(n);
@@ -48,6 +58,13 @@ public class HappyNumber {
             fast = sumOfSquares(sumOfSquares(fast));
         }
         return fast == 1;
+    }
+
+    /** Approach 2 — HashSet of seen numbers. TIME O(log n) · SPACE O(log n) */
+    public boolean isHappyHashSet(int n) {
+        Set<Integer> seen = new HashSet<>();
+        while (n != 1 && seen.add(n)) n = sumOfSquares(n);
+        return n == 1;
     }
 
     private int sumOfSquares(int n) {

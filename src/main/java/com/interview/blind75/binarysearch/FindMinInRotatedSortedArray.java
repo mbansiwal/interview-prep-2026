@@ -25,23 +25,24 @@ package com.interview.blind75.binarysearch;
  *   - All values are unique
  *
  * ============================================================
- * APPROACH: Binary Search on Rotation Point
+ * APPROACHES
  * ============================================================
- * 1. If nums[mid] > nums[right], minimum is in right half: left = mid+1.
- * 2. Otherwise minimum is in left half (including mid): right = mid.
- * 3. When left == right, we found the minimum.
+ * APPROACH 1: Binary search comparing mid with the right end  (primary — the only optimal approach)
+ *   1. left = 0, right = n − 1.
+ *   2. nums[mid] > nums[right] → the drop (minimum) is right of mid: left = mid + 1.
+ *   3. Otherwise mid..right is sorted, so the minimum is at mid or to its left: right = mid.
+ *   4. When left == right, that's the minimum.
+ *   Intuition: comparing with the right end always tells which half holds the rotation point.
+ *   TIME O(log n) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * The right half of the rotation is always "lower" than the left half.
- * Comparing mid with right tells us which side the rotation boundary
- * (and minimum) is on.
- *
- * TIME  : O(log n)
- * SPACE : O(1)
+ * ALTERNATIVES:
+ *   Linear scan for the minimum is O(n). No materially better alternative to
+ *   the binary search (values are distinct, so there is no O(n) worst case).
  * ============================================================
  */
 public class FindMinInRotatedSortedArray {
 
+    /** Approach 1 — binary search against the right end. TIME O(log n) · SPACE O(1) */
     public int findMin(int[] nums) {
         int left = 0, right = nums.length - 1;
         while (left < right) {

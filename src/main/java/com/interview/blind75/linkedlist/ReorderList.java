@@ -1,5 +1,8 @@
 package com.interview.blind75.linkedlist;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * ============================================================
  * PROBLEM : Reorder List
@@ -23,38 +26,46 @@ package com.interview.blind75.linkedlist;
  *   - 1 <= number of nodes <= 5 * 10^4
  *
  * ============================================================
- * APPROACH: Find Middle + Reverse Second Half + Merge
+ * APPROACHES
  * ============================================================
+ * APPROACH 1: Find Middle + Reverse Second Half + Merge
  * 1. Find the middle node using slow/fast pointers.
  * 2. Reverse the second half of the list in-place.
- * 3. Merge the first half and reversed second half, alternating nodes.
- *
- * WHY THIS WORKS:
- * The target order takes one node from the front, then one from the back.
- * Reversing the second half lets us walk it from Ln backwards while walking
- * the first half forwards — alternating the two gives L0, Ln, L1, Ln-1, …
- *
+ * 3. Merge the first half and the reversed second half, alternating nodes.
+ * Intuition: reversing the second half lets us walk it from Ln backwards while
+ * walking the first half forwards — alternating gives L0, Ln, L1, Ln-1, …
  * TIME  : O(n)
  * SPACE : O(1)
+ *
+ * APPROACH 2: Array of Nodes + Two Pointers
+ * 1. Copy every node reference into an ArrayList (random access).
+ * 2. Use i from the front and j from the back; link nodes[i]→nodes[j]→nodes[i+1].
+ * 3. Move i forward and j backward until they meet; set the last node's next to null.
+ * Intuition: with random access, "one from the front, one from the back" is trivial.
+ * TIME  : O(n)
+ * SPACE : O(n) — the node array
+ *
+ * WHICH TO USE:
+ * Approach 1 is what interviewers expect: it combines three core linked-list
+ * techniques with O(1) space. Approach 2 is simpler to get right under pressure
+ * and a good stepping stone, but uses O(n) extra memory.
  * ============================================================
  */
 public class ReorderList {
 
+    /** Approach 1 — Middle + reverse + merge. TIME O(n) · SPACE O(1) · mutates input */
     public void reorderList(ListNode head) {
         if (head == null || head.next == null) return;
 
-        // Step 1: Find middle
         ListNode slow = head, fast = head;
         while (fast.next != null && fast.next.next != null) {
             slow = slow.next;
             fast = fast.next.next;
         }
 
-        // Step 2: Reverse second half
         ListNode secondHalf = reverseList(slow.next);
         slow.next = null;
 
-        // Step 3: Merge two halves
         ListNode first = head, second = secondHalf;
         while (second != null) {
             ListNode tmp1 = first.next, tmp2 = second.next;
@@ -63,6 +74,24 @@ public class ReorderList {
             first = tmp1;
             second = tmp2;
         }
+    }
+
+    /** Approach 2 — Node array + two pointers. TIME O(n) · SPACE O(n) · mutates input */
+    public void reorderListWithArray(ListNode head) {
+        if (head == null || head.next == null) return;
+
+        List<ListNode> nodes = new ArrayList<>();
+        for (ListNode cur = head; cur != null; cur = cur.next) nodes.add(cur);
+
+        int i = 0, j = nodes.size() - 1;
+        while (i < j) {
+            nodes.get(i).next = nodes.get(j);
+            i++;
+            if (i == j) break;
+            nodes.get(j).next = nodes.get(i);
+            j--;
+        }
+        nodes.get(i).next = null;
     }
 
     private ListNode reverseList(ListNode head) {

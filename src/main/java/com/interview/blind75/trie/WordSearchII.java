@@ -26,23 +26,21 @@ import java.util.List;
  *   - words.length <= 3 * 10^4
  *
  * ============================================================
- * APPROACH: Trie Build + Board DFS
+ * APPROACHES  (R×C = board size, L = max word length, W = number of words)
  * ============================================================
- * 1. Build a Trie from all words.
- * 2. DFS from each cell on the board, traversing the Trie simultaneously.
- * 3. Mark cells visited during DFS, restore on backtrack.
- * 4. When a Trie node holds a word, add it to results and clear it.
- * 5. On the way back, if a child node has no word and no children left,
- *    delete it from its parent (leaf pruning).
+ * APPROACH 1: Trie of All Words + One Board DFS, with Pruning
+ * 1. Build a trie from all words; store the full word at its last node.
+ * 2. DFS from every cell, walking the board and the trie together; mark cells
+ *    visited with '#' and restore them when backtracking.
+ * 3. When a trie node holds a word, add it to the result and clear it (no duplicates).
+ * 4. On the way back, delete a child that has no word and no children left (leaf pruning).
+ * Intuition: one DFS looks for every word at once and stops as soon as no word
+ * starts with the current path; pruning stops re-walking fully-found branches.
+ * TIME  : O(R · C · 4 · 3^(L-1)) worst case — 4 directions first, then at most 3 (can't go back)
+ * SPACE : O(W · L) for the trie + O(L) recursion stack
  *
- * WHY THIS WORKS:
- * Building a Trie upfront lets one DFS search for every word at once and
- * stop as soon as no word starts with the current path. Clearing a found word
- * prevents duplicates. Pruning emptied branches means later DFS calls never
- * re-walk paths whose words are all found — without it, large inputs time out.
- *
- * TIME  : O(m*n*4^L) where L = max word length
- * SPACE : O(W*L) for the trie where W = number of words
+ * ALTERNATIVES: running Word Search I separately for each word is
+ * O(W · R · C · 4 · 3^(L-1)) and times out — no materially better alternative to Approach 1.
  * ============================================================
  */
 public class WordSearchII {
@@ -52,6 +50,7 @@ public class WordSearchII {
         String word = null;
     }
 
+    /** Approach 1 — Trie + board DFS with pruning. TIME O(R·C·4·3^(L-1)) · SPACE O(W·L) · board restored after use */
     public List<String> findWords(char[][] board, String[] words) {
         TrieNode root = buildTrie(words);
         List<String> result = new ArrayList<>();

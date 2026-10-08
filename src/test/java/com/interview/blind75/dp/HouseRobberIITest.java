@@ -1,18 +1,36 @@
 package com.interview.blind75.dp;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.function.ToIntFunction;
+import java.util.stream.Stream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class HouseRobberIITest {
 
-    private final HouseRobberII solution = new HouseRobberII();
+    static Stream<Arguments> approaches() {
+        HouseRobberII s = new HouseRobberII();
+        return Stream.of(
+                Arguments.of("rolling O(1)", (ToIntFunction<int[]>) s::rob),
+                Arguments.of("tabulation", (ToIntFunction<int[]>) s::robTabulation));
+    }
 
-    @Test
-    void circularThree() { assertEquals(3, solution.rob(new int[]{2, 3, 2})); }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("approaches")
+    void circularThree(String name, ToIntFunction<int[]> f) { assertEquals(3, f.applyAsInt(new int[]{2, 3, 2})); }
 
-    @Test
-    void circularFour() { assertEquals(4, solution.rob(new int[]{1, 2, 3, 1})); }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("approaches")
+    void circularFour(String name, ToIntFunction<int[]> f) { assertEquals(4, f.applyAsInt(new int[]{1, 2, 3, 1})); }
 
-    @Test
-    void singleHouse() { assertEquals(1, solution.rob(new int[]{1})); }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("approaches")
+    void singleHouse(String name, ToIntFunction<int[]> f) { assertEquals(1, f.applyAsInt(new int[]{1})); }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("approaches")
+    void twoHouses(String name, ToIntFunction<int[]> f) { assertEquals(7, f.applyAsInt(new int[]{7, 3})); }
 }

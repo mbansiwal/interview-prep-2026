@@ -1,5 +1,6 @@
 package com.interview.blind75.arrays;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,24 +28,29 @@ import java.util.Set;
  *   - -10^9 <= nums[i] <= 10^9
  *
  * ============================================================
- * APPROACH: HashSet with Sequence Start Detection
+ * APPROACHES
  * ============================================================
- * 1. Add all numbers to a HashSet for O(1) lookups.
- * 2. For each number, check if (num - 1) is NOT in the set.
- *    If so, num is the start of a new sequence.
- * 3. From the start, count how long the consecutive sequence extends.
- * 4. Track and return the maximum length found.
+ * APPROACH 1: HashSet + count only from sequence starts  (primary)
+ *   1. Put every number in a HashSet.
+ *   2. A number starts a sequence if (num − 1) is not in the set.
+ *   3. From each start, count num+1, num+2, … while present; track the max.
+ *   Intuition: counting only from starts means each number is visited O(1) times.
+ *   TIME O(n) · SPACE O(n)
  *
- * WHY THIS WORKS:
- * Only processing sequence starts prevents re-counting. Each element
- * belongs to exactly one sequence, so total inner loop runs are O(n).
+ * APPROACH 2: Sort, then scan
+ *   1. Sort the array.
+ *   2. Walk it: equal neighbour → skip, neighbour + 1 → extend run, otherwise reset.
+ *   Intuition: after sorting, consecutive values are adjacent.
+ *   TIME O(n log n) · SPACE O(log n) sort stack (mutates input)
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   The problem demands O(n), so #1 is the answer. #2 is a fine starting point
+ *   to mention, and wins if memory is tight. Remember duplicates in #2.
  * ============================================================
  */
 public class LongestConsecutiveSequence {
 
+    /** Approach 1 — HashSet, count from sequence starts. TIME O(n) · SPACE O(n) */
     public int longestConsecutive(int[] nums) {
         Set<Integer> numSet = new HashSet<>();
         for (int num : nums) numSet.add(num);
@@ -58,5 +64,18 @@ public class LongestConsecutiveSequence {
             }
         }
         return maxLength;
+    }
+
+    /** Approach 2 — sort then scan runs. TIME O(n log n) · SPACE O(log n), mutates input */
+    public int longestConsecutiveSorting(int[] nums) {
+        if (nums.length == 0) return 0;
+        Arrays.sort(nums);
+        int best = 1, run = 1;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == nums[i - 1]) continue;
+            run = (nums[i] == nums[i - 1] + 1) ? run + 1 : 1;
+            best = Math.max(best, run);
+        }
+        return best;
     }
 }

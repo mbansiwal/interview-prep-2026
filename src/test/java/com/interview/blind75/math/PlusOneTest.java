@@ -15,4 +15,7 @@ class PlusOneTest {
 
     @Test
     void singleDigit() { assertArrayEquals(new int[]{1}, solution.plusOne(new int[]{0})); }
+
+    @Test
+    void carryStopsMidway() { assertArrayEquals(new int[]{1,3,0,0}, solution.plusOne(new int[]{1,2,9,9})); }
 }

@@ -1,5 +1,8 @@
 package com.interview.blind75.trees;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 /**
  * ============================================================
  * PROBLEM : Validate Binary Search Tree
@@ -24,23 +27,32 @@ package com.interview.blind75.trees;
  *   - 1 <= number of nodes <= 10^4
  *
  * ============================================================
- * APPROACH: DFS with Valid Range Bounds
+ * APPROACHES  (n = nodes, h = height)
  * ============================================================
- * 1. Pass min and max valid bounds down the tree.
- * 2. Left subtree: max bound = current node's value.
- * 3. Right subtree: min bound = current node's value.
- * 4. If node value violates bounds, return false.
- *
- * WHY THIS WORKS:
- * Just checking left < parent < right is insufficient for nested cases.
- * Tracking inherited bounds from all ancestors catches those violations.
- *
+ * APPROACH 1: DFS with Valid Range Bounds
+ * 1. Pass down the open interval (min, max) each node must fall in.
+ * 2. Going left, max becomes the parent's value; going right, min does.
+ * 3. Any node outside its interval → not a BST. Use long bounds so Integer.MIN/MAX work.
+ * Intuition: "left < parent < right" isn't enough — every ancestor constrains a node.
  * TIME  : O(n)
- * SPACE : O(h)
+ * SPACE : O(h) — recursion stack
+ *
+ * APPROACH 2: Iterative Inorder Traversal with a "prev" Value
+ * 1. Do an inorder walk (left, node, right) with an explicit stack.
+ * 2. Keep the previously visited value; each new value must be strictly greater.
+ * 3. Any value <= prev → not a BST.
+ * Intuition: inorder traversal of a valid BST is strictly increasing.
+ * TIME  : O(n) — and it can stop at the first violation
+ * SPACE : O(h) — explicit stack
+ *
+ * WHICH TO USE:
+ * Both are optimal and well known. Range bounds is the most common answer; the
+ * inorder version reuses a pattern you'll need anyway (e.g. Kth Smallest in BST).
  * ============================================================
  */
 public class ValidateBST {
 
+    /** Approach 1 — DFS with range bounds. TIME O(n) · SPACE O(h) recursion stack */
     public boolean isValidBST(TreeNode root) {
         return validate(root, Long.MIN_VALUE, Long.MAX_VALUE);
     }
@@ -49,5 +61,23 @@ public class ValidateBST {
         if (node == null) return true;
         if (node.val <= min || node.val >= max) return false;
         return validate(node.left, min, node.val) && validate(node.right, node.val, max);
+    }
+
+    /** Approach 2 — Iterative inorder, strictly increasing check. TIME O(n) · SPACE O(h) stack */
+    public boolean isValidBSTInorder(TreeNode root) {
+        Deque<TreeNode> stack = new ArrayDeque<>();
+        Integer prev = null;
+        TreeNode curr = root;
+        while (curr != null || !stack.isEmpty()) {
+            while (curr != null) {
+                stack.push(curr);
+                curr = curr.left;
+            }
+            curr = stack.pop();
+            if (prev != null && curr.val <= prev) return false;
+            prev = curr.val;
+            curr = curr.right;
+        }
+        return true;
     }
 }

@@ -24,7 +24,7 @@ package com.interview.blind75.graphs;
  *   - n edges (one redundant)
  *
  * ============================================================
- * APPROACH: Union-Find with Path Compression + Union by Rank
+ * APPROACH 1: Union-Find with Path Compression + Union by Rank
  * ============================================================
  * 1. Process edges one by one.
  * 2. For each edge (u, v): find roots of both.
@@ -37,10 +37,16 @@ package com.interview.blind75.graphs;
  *
  * TIME  : O(n * α(n)) ≈ O(n) — α is inverse Ackermann, nearly constant
  * SPACE : O(n)
+ *
+ * ALTERNATIVES: for each edge, DFS to check whether its endpoints are already connected
+ * before adding it — O(n²) time, O(n) space. Worse; no materially better alternative than DSU.
+ *
+ * WHICH TO USE: Union-Find — this problem is the textbook DSU use case.
  * ============================================================
  */
 public class RedundantConnection {
 
+    /** Approach 1 — Union-Find. TIME O(n · α(n)) · SPACE O(n) */
     public int[] findRedundantConnection(int[][] edges) {
         int n = edges.length;
         int[] parent = new int[n + 1];

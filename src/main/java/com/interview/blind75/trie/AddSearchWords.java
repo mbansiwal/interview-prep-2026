@@ -22,19 +22,21 @@ package com.interview.blind75.trie;
  *   - word in search contains '.' or lowercase letters
  *
  * ============================================================
- * APPROACH: Trie with DFS for Wildcard Search
+ * APPROACHES  (m = word length, N = total characters added)
  * ============================================================
- * 1. Trie with addWord works same as ImplementTrie.
- * 2. search uses DFS: for '.', recurse on all non-null children.
- *    For regular chars, follow the exact child if it exists.
+ * APPROACH 1: Trie with DFS for the '.' Wildcard
+ * 1. addWord inserts into a trie exactly like Implement Trie.
+ * 2. search walks the trie with DFS: a letter follows its one child;
+ *    '.' tries every non-null child at that position.
+ * 3. At the end of the pattern, the node must be the end of a word.
+ * Intuition: '.' can match any letter, so branch on all children — the trie prunes
+ * every path that no stored word follows.
+ * TIME  : addWord O(m); search O(m) without dots, worst case O(N) with dots (every branch explored)
+ * SPACE : O(26 · N) for the trie; O(m) recursion stack for search
  *
- * WHY THIS WORKS:
- * '.' could match any of 26 children at that position, so we must try
- * all of them. DFS with backtracking explores all valid paths.
- *
- * TIME  : O(m) addWord; search O(m) without dots,
- *         worst case O(total trie nodes) with dots (every branch explored)
- * SPACE : O(m * n) total
+ * ALTERNATIVES: storing words in a list (or bucketed by length) and comparing
+ * character by character is O(words · m) per search — no materially better
+ * alternative to Approach 1.
  * ============================================================
  */
 public class AddSearchWords {
@@ -46,6 +48,7 @@ public class AddSearchWords {
 
     private final TrieNode root = new TrieNode();
 
+    /** Approach 1 — Trie insert. TIME O(m) · SPACE O(m) new nodes worst case */
     public void addWord(String word) {
         TrieNode curr = root;
         for (char c : word.toCharArray()) {
@@ -56,6 +59,7 @@ public class AddSearchWords {
         curr.isEnd = true;
     }
 
+    /** Approach 1 — Trie DFS with wildcard branching. TIME O(m) no dots, O(N) worst case · SPACE O(m) recursion */
     public boolean search(String word) {
         return dfs(word, 0, root);
     }

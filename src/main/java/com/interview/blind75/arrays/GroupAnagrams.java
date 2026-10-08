@@ -27,23 +27,30 @@ import java.util.*;
  *   - strs[i] consists of lowercase English letters
  *
  * ============================================================
- * APPROACH: Sorted String as HashMap Key
+ * APPROACHES
  * ============================================================
- * 1. Create a HashMap where key = sorted version of a word.
- * 2. For each word, sort its characters to get a canonical key.
- * 3. Append the original word to the list at that key.
- * 4. Return all map values as the grouped result.
+ * APPROACH 1: Sorted word as the key  (primary)
+ *   1. For each word, sort its characters → canonical key ("eat" → "aet").
+ *   2. Append the word to map[key].
+ *   3. Return the map's values.
+ *   Intuition: all anagrams share the same sorted form.
+ *   TIME O(n · k log k) · SPACE O(n · k), k = max word length
  *
- * WHY THIS WORKS:
- * Anagrams share the same sorted character sequence. Using sorted
- * form as a key groups them naturally without manual comparison.
+ * APPROACH 2: Letter-count signature as the key
+ *   1. For each word, count its 26 letters.
+ *   2. Turn the counts into a key such as "#1#0#0…" (separators avoid ambiguity).
+ *   3. Group by that key.
+ *   Intuition: anagrams have identical letter counts; counting avoids the sort.
+ *   TIME O(n · k) · SPACE O(n · k)
  *
- * TIME  : O(n · k · log k)  where k = max word length
- * SPACE : O(n · k)
+ * WHICH TO USE:
+ *   #1 is shortest and usually accepted. Offer #2 when asked to remove the
+ *   log k factor — it's faster for long words, slightly slower for short ones.
  * ============================================================
  */
 public class GroupAnagrams {
 
+    /** Approach 1 — sorted word as key. TIME O(n·k log k) · SPACE O(n·k) */
     public List<List<String>> groupAnagrams(String[] strs) {
         Map<String, List<String>> groups = new HashMap<>();
         for (String word : strs) {
@@ -51,6 +58,19 @@ public class GroupAnagrams {
             Arrays.sort(chars);
             String key = new String(chars);
             groups.computeIfAbsent(key, k -> new ArrayList<>()).add(word);
+        }
+        return new ArrayList<>(groups.values());
+    }
+
+    /** Approach 2 — 26-letter count signature as key. TIME O(n·k) · SPACE O(n·k) */
+    public List<List<String>> groupAnagramsCountKey(String[] strs) {
+        Map<String, List<String>> groups = new HashMap<>();
+        for (String word : strs) {
+            int[] counts = new int[26];
+            for (char c : word.toCharArray()) counts[c - 'a']++;
+            StringBuilder key = new StringBuilder();
+            for (int count : counts) key.append('#').append(count);
+            groups.computeIfAbsent(key.toString(), k -> new ArrayList<>()).add(word);
         }
         return new ArrayList<>(groups.values());
     }

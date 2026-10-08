@@ -1,5 +1,8 @@
 package com.interview.blind75.trie;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * ============================================================
  * PROBLEM : Implement Trie (Prefix Tree)
@@ -22,19 +25,28 @@ package com.interview.blind75.trie;
  *   - word and prefix consist of lowercase English letters
  *
  * ============================================================
- * APPROACH: TrieNode with 26-Child Array
+ * APPROACHES  (m = length of the word/prefix, N = total characters inserted)
  * ============================================================
- * 1. Each TrieNode has TrieNode[26] children and a boolean isEnd.
- * 2. insert: traverse chars, creating nodes as needed; mark isEnd=true.
- * 3. search: traverse chars; if any missing return false; check isEnd.
- * 4. startsWith: traverse chars; if any missing return false.
+ * APPROACH 1: TrieNode with a 26-Slot Child Array (this class)
+ * 1. Each node has TrieNode[26] children and an isEnd flag.
+ * 2. insert: walk the characters, creating missing children; mark the last node isEnd.
+ * 3. search: walk the characters; fail on a missing child; the last node must be isEnd.
+ * 4. startsWith: same walk, but any surviving node means the prefix exists.
+ * Intuition: index c - 'a' gives O(1) child lookup; isEnd separates words from prefixes.
+ * TIME  : O(m) per operation
+ * SPACE : O(26 · N) worst case — every node reserves 26 slots, even unused ones
  *
- * WHY THIS WORKS:
- * An array of 26 children allows O(1) child lookup by character index.
- * isEnd distinguishes inserted words from mere prefixes.
+ * APPROACH 2: TrieNode with a HashMap of Children (ImplementTrie.HashMapTrie)
+ * 1. Each node stores Map<Character, Node> children instead of an array.
+ * 2. Same insert / search / startsWith walks, using get / computeIfAbsent.
+ * Intuition: only allocate children that actually exist.
+ * TIME  : O(m) per operation (expected — hashing has a higher constant factor)
+ * SPACE : O(N) — one map entry per real edge
  *
- * TIME  : O(m) per operation where m = word length
- * SPACE : O(m * n) total where n = number of words
+ * WHICH TO USE:
+ * The array version is the standard interview answer for lowercase a–z: fastest and
+ * simplest. Choose the HashMap version for large or unknown alphabets (Unicode,
+ * mixed case) or very sparse tries, where 26 slots per node wastes memory.
  * ============================================================
  */
 public class ImplementTrie {
@@ -46,6 +58,7 @@ public class ImplementTrie {
 
     private final TrieNode root = new TrieNode();
 
+    /** Approach 1 — Array children. TIME O(m) · SPACE O(m) new nodes worst case */
     public void insert(String word) {
         TrieNode curr = root;
         for (char c : word.toCharArray()) {
@@ -56,11 +69,13 @@ public class ImplementTrie {
         curr.isEnd = true;
     }
 
+    /** Approach 1 — Array children. TIME O(m) · SPACE O(1) */
     public boolean search(String word) {
         TrieNode node = traverse(word);
         return node != null && node.isEnd;
     }
 
+    /** Approach 1 — Array children. TIME O(m) · SPACE O(1) */
     public boolean startsWith(String prefix) {
         return traverse(prefix) != null;
     }
@@ -73,5 +88,43 @@ public class ImplementTrie {
             curr = curr.children[idx];
         }
         return curr;
+    }
+
+    /** Approach 2 — HashMap children; works for any alphabet. TIME O(m) per op · SPACE O(N) total */
+    public static class HashMapTrie {
+
+        private static class Node {
+            final Map<Character, Node> children = new HashMap<>();
+            boolean isEnd = false;
+        }
+
+        private final Node root = new Node();
+
+        /** TIME O(m) · SPACE O(m) new nodes worst case */
+        public void insert(String word) {
+            Node curr = root;
+            for (char c : word.toCharArray()) curr = curr.children.computeIfAbsent(c, k -> new Node());
+            curr.isEnd = true;
+        }
+
+        /** TIME O(m) · SPACE O(1) */
+        public boolean search(String word) {
+            Node node = traverse(word);
+            return node != null && node.isEnd;
+        }
+
+        /** TIME O(m) · SPACE O(1) */
+        public boolean startsWith(String prefix) {
+            return traverse(prefix) != null;
+        }
+
+        private Node traverse(String word) {
+            Node curr = root;
+            for (char c : word.toCharArray()) {
+                curr = curr.children.get(c);
+                if (curr == null) return null;
+            }
+            return curr;
+        }
     }
 }

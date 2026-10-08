@@ -28,23 +28,30 @@ import java.util.Deque;
  *   - 30 <= temperatures[i] <= 100
  *
  * ============================================================
- * APPROACH: Monotonic Decreasing Stack
+ * APPROACHES
  * ============================================================
- * 1. Maintain a stack of indices with decreasing temperatures.
- * 2. For each day i, pop all indices where temp[i] > temp[stack.peek()].
- * 3. For each popped index j, answer[j] = i - j.
- * 4. Push current index i onto stack.
+ * APPROACH 1: Monotonic decreasing stack of indices  (primary)
+ *   1. Scan left to right, keeping indices whose temperatures are decreasing.
+ *   2. A warmer day pops every cooler index; answer[j] = i − j.
+ *   Intuition: each index waits on the stack until its first warmer day arrives.
+ *   TIME O(n) — each index pushed and popped once · SPACE O(n)
  *
- * WHY THIS WORKS:
- * Stack holds indices awaiting a warmer day. When we find one, we resolve
- * all waiting days in one pass. Total pops == total pushes == O(n).
+ * APPROACH 2: Backward scan with jumps (no stack)
+ *   1. Scan right to left, tracking the hottest temperature seen so far.
+ *   2. If today is at least the hottest, answer stays 0.
+ *   3. Otherwise, start at i+1 and jump by answer[j] until a warmer day is found.
+ *   Intuition: answer[j] already tells us the next day warmer than j, so we skip
+ *   every day that can't be the answer.
+ *   TIME O(n) amortized · SPACE O(1) extra (output excluded)
  *
- * TIME  : O(n)
- * SPACE : O(n)
+ * WHICH TO USE:
+ *   #1 is the textbook monotonic-stack answer. #2 is the follow-up for O(1)
+ *   extra space. Brute force (scan forward from each day) is O(n²).
  * ============================================================
  */
 public class DailyTemperatures {
 
+    /** Approach 1 — monotonic decreasing stack. TIME O(n) · SPACE O(n) */
     public int[] dailyTemperatures(int[] temperatures) {
         int n = temperatures.length;
         int[] answer = new int[n];
@@ -56,6 +63,24 @@ public class DailyTemperatures {
                 answer[j] = i - j;
             }
             stack.push(i);
+        }
+        return answer;
+    }
+
+    /** Approach 2 — backward scan, jumping via known answers. TIME O(n) amortized · SPACE O(1) extra */
+    public int[] dailyTemperaturesBackwardJumps(int[] temperatures) {
+        int n = temperatures.length;
+        int[] answer = new int[n];
+        int hottest = 0;
+        for (int i = n - 1; i >= 0; i--) {
+            int t = temperatures[i];
+            if (t >= hottest) {
+                hottest = t;
+                continue; // nothing warmer to the right
+            }
+            int days = 1;
+            while (temperatures[i + days] <= t) days += answer[i + days];
+            answer[i] = days;
         }
         return answer;
     }

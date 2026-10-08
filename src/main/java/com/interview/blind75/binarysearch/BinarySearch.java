@@ -26,25 +26,28 @@ package com.interview.blind75.binarysearch;
  *   - nums is sorted in ascending order
  *
  * ============================================================
- * APPROACH: Classic Binary Search
+ * APPROACHES
  * ============================================================
- * 1. Initialize left=0, right=n-1.
- * 2. Compute mid = left + (right-left)/2  (avoids overflow).
- * 3. If nums[mid] == target, return mid.
- * 4. If nums[mid] < target, search right half: left = mid+1.
- * 5. Else search left half: right = mid-1.
- * 6. Return -1 if not found.
+ * APPROACH 1: Iterative binary search  (primary)
+ *   1. left = 0, right = n − 1.
+ *   2. mid = left + (right − left) / 2  (avoids int overflow).
+ *   3. Equal → return mid; smaller → search right half; larger → left half.
+ *   Intuition: each comparison discards half of the remaining range.
+ *   TIME O(log n) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * Each iteration halves the search space. An element can only be
- * in the correct half based on comparison with the midpoint.
+ * APPROACH 2: Recursive binary search
+ *   1. Same steps, recursing on the half that can still contain the target.
+ *   Intuition: the same algorithm expressed as divide and conquer.
+ *   TIME O(log n) · SPACE O(log n) recursion stack
  *
- * TIME  : O(log n)
- * SPACE : O(1)
+ * WHICH TO USE:
+ *   #1 in production and interviews (no stack, no overflow). #2 is fine to show
+ *   the recursive structure. Linear scan is O(n).
  * ============================================================
  */
 public class BinarySearch {
 
+    /** Approach 1 — iterative. TIME O(log n) · SPACE O(1) */
     public int search(int[] nums, int target) {
         int left = 0, right = nums.length - 1;
         while (left <= right) {
@@ -54,5 +57,19 @@ public class BinarySearch {
             else right = mid - 1;
         }
         return -1;
+    }
+
+    /** Approach 2 — recursive. TIME O(log n) · SPACE O(log n) recursion */
+    public int searchRecursive(int[] nums, int target) {
+        return searchRange(nums, target, 0, nums.length - 1);
+    }
+
+    private int searchRange(int[] nums, int target, int left, int right) {
+        if (left > right) return -1;
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target) return mid;
+        return nums[mid] < target
+                ? searchRange(nums, target, mid + 1, right)
+                : searchRange(nums, target, left, mid - 1);
     }
 }

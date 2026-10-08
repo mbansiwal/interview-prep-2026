@@ -24,24 +24,24 @@ package com.interview.blind75.twopointers;
  *   - 2 <= n <= 10^5
  *
  * ============================================================
- * APPROACH: Greedy Two Pointers
+ * APPROACHES
  * ============================================================
- * 1. Start with left=0, right=n-1 (widest container).
- * 2. Compute area = min(h[l], h[r]) * (r - l).
- * 3. Move the pointer with the shorter height inward.
- *    (Moving the taller one can only decrease area.)
- * 4. Track maximum area across all iterations.
+ * APPROACH 1: Greedy two pointers  (primary — the only optimal approach)
+ *   1. Start with the widest container: l = 0, r = n − 1.
+ *   2. area = min(h[l], h[r]) × (r − l); track the max.
+ *   3. Move the pointer at the shorter wall inward.
+ *   Intuition: the shorter wall caps the area; moving the taller one can only
+ *   shrink the width without raising that cap, so it can never help.
+ *   TIME O(n) · SPACE O(1)
  *
- * WHY THIS WORKS:
- * The bottleneck is always the shorter wall. Moving the shorter pointer
- * is the only chance to find a taller wall that may increase area.
- *
- * TIME  : O(n)
- * SPACE : O(1)
+ * ALTERNATIVES:
+ *   Brute force over every pair is O(n²) time, O(1) space — no materially
+ *   better alternative to the two-pointer greedy.
  * ============================================================
  */
 public class ContainerWithMostWater {
 
+    /** Approach 1 — greedy two pointers. TIME O(n) · SPACE O(1) */
     public int maxArea(int[] height) {
         int l = 0, r = height.length - 1;
         int maxWater = 0;

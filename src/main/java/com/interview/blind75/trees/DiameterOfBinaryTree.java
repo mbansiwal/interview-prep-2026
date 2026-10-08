@@ -24,25 +24,25 @@ package com.interview.blind75.trees;
  *   - 1 <= number of nodes <= 10^4
  *
  * ============================================================
- * APPROACH: DFS Height with Global Max
+ * APPROACHES  (n = nodes, h = height)
  * ============================================================
- * 1. Define a DFS function that returns the height of a subtree.
- * 2. At each node: diameter candidate = leftHeight + rightHeight.
- * 3. Update the global max diameter.
- * 4. Return height = 1 + max(leftHeight, rightHeight).
- *
- * WHY THIS WORKS:
- * The diameter through any node equals the sum of heights of its
- * two subtrees. We compute this at every node and take the maximum.
- *
+ * APPROACH 1: DFS Height with a Running Max
+ * 1. DFS returns the height of each subtree.
+ * 2. At each node, the longest path through it = leftHeight + rightHeight edges.
+ * 3. Track the maximum of that over all nodes; return 1 + max(left, right) upward.
+ * Intuition: every longest path has a highest node; there it uses both subtree heights.
  * TIME  : O(n)
- * SPACE : O(h)
+ * SPACE : O(h) — recursion stack
+ *
+ * ALTERNATIVES: brute force (compute heights separately at every node) is O(n²)
+ * on skewed trees — no materially better alternative to Approach 1.
  * ============================================================
  */
 public class DiameterOfBinaryTree {
 
     private int maxDiameter = 0;
 
+    /** Approach 1 — DFS height with running max. TIME O(n) · SPACE O(h) recursion stack */
     public int diameterOfBinaryTree(TreeNode root) {
         maxDiameter = 0;
         height(root);
